@@ -4,10 +4,9 @@
 
 ![PyPI](https://img.shields.io/pypi/v/deemon?style=for-the-badge)
 ![Downloads](https://img.shields.io/pepy/dt/deemon?style=for-the-badge)
-![GitHub last release](https://img.shields.io/github/release-date/digitalec/deemon?style=for-the-badge)
-![GitHub last commit](https://img.shields.io/github/last-commit/digitalec/deemon?style=for-the-badge)
-![Docker](https://img.shields.io/github/actions/workflow/status/digitalec/deemon/deploy-docker.yml?branch=main&style=for-the-badge&logo=docker)
-![Discord](https://img.shields.io/discord/831356172464160838?style=for-the-badge&logo=discord)
+![GitHub last release](https://img.shields.io/github/release-date/deathrashed/deemon?style=for-the-badge)
+![GitHub last commit](https://img.shields.io/github/last-commit/deathrashed/deemon?style=for-the-badge)
+![Docker](https://img.shields.io/github/actions/workflow/status/deathrashed/deemon/deploy-docker.yml?branch=main&style=for-the-badge&logo=docker)
 
 ## About
 
@@ -28,11 +27,20 @@ deemon is a command line tool written in Python that monitors artists for new re
 - **Interactive Menu**: User-friendly TUI with styled menus and pagination
 - **Keyboard Maestro Ready**: Wrapper script included for automation workflows
 
+<details>
+<summary>Attribution</summary>
+
+Originally forked from https://github.com/digitalec/deemon (now archived). This repo is maintained independently.
+</details>
+
 ## Support
 
-[Open an Issue](https://github.com/digitalec/deemon/issues/new) | [Discord](https://discord.gg/KzNCG2tkvn)
+[Open an Issue](https://github.com/deathrashed/deemon/issues/new)
 
 ## Installation
+
+<details>
+<summary>Show installation options</summary>
 
 ### Prerequisites
 
@@ -44,7 +52,7 @@ deemon is a command line tool written in Python that monitors artists for new re
 
 ```bash
 # Clone the repository
-git clone https://github.com/digitalec/deemon.git ~/deemon
+git clone https://github.com/deathrashed/deemon.git ~/deemon
 cd ~/deemon
 
 # Run the install script
@@ -65,7 +73,7 @@ $ pip install deemon
 ### From source
 
 ```bash
-$ git clone https://github.com/digitalec/deemon.git ~/deemon
+$ git clone https://github.com/deathrashed/deemon.git ~/deemon
 $ cd ~/deemon
 $ pip install -r requirements.txt
 $ python3 -m deemon
@@ -84,7 +92,7 @@ docker run --name deemon \
        -v /path/to/deemon/config:/config \
        -v /path/to/music:/downloads \
        -v /path/to/deemix/config:/deemix  \
-       ghcr.io/digitalec/deemon:latest \
+       ghcr.io/deathrashed/deemon:latest \
        python3 -m deemon refresh
 ```
 
@@ -127,7 +135,12 @@ $ source ./venv/bin/activate
 $ deemon refresh
 ```
 
+</details>
+
 ## Configuration
+
+<details>
+<summary>Show configuration guide</summary>
 
 ### Initial Setup
 
@@ -304,7 +317,12 @@ Or edit `config.json` directly:
 - **fast_api**: Enable fast API mode
 - **fast_api_threads**: Number of threads for fast API
 
+</details>
+
 ## Commands
+
+<details>
+<summary>Show command reference</summary>
 
 ### Overview
 
@@ -805,7 +823,12 @@ deemon extra
 - `-P, --profile PROFILE`: Run deemon with specific profile
 - `--whats-new`: Show release notes from current version
 
+</details>
+
 ## Examples
+
+<details>
+<summary>Show example workflows</summary>
 
 ### Basic Workflow
 
@@ -957,7 +980,12 @@ deemon discography -b "Pink Floyd" -a "The Dark Side of the Moon" --include-sing
 deemon discography -b "Pink Floyd" -a "The Dark Side of the Moon" --print-only
 ```
 
+</details>
+
 ## Automation
+
+<details>
+<summary>Show automation examples</summary>
 
 ### Cron (Linux/macOS)
 
@@ -989,7 +1017,7 @@ docker run --name deemon \
        -v /path/to/deemon/config:/config \
        -v /path/to/music:/downloads \
        -v /path/to/deemix/config:/deemix  \
-       ghcr.io/digitalec/deemon:latest \
+       ghcr.io/deathrashed/deemon:latest \
        python3 -m deemon refresh
 ```
 
@@ -998,7 +1026,12 @@ Add to crontab:
 0 2 * * * /path/to/refresh.sh
 ```
 
+</details>
+
 ## Troubleshooting
+
+<details>
+<summary>Show troubleshooting guide</summary>
 
 ### Common Issues
 
@@ -1053,9 +1086,10 @@ deemon -v refresh
 
 ### Getting Help
 
-- Check documentation: https://digitalec.github.io/deemon
-- Open an issue: https://github.com/digitalec/deemon/issues/new
-- Join Discord: https://discord.gg/KzNCG2tkvn
+- Check documentation: https://github.com/deathrashed/deemon/tree/main/docs
+- Open an issue: https://github.com/deathrashed/deemon/issues/new
+
+</details>
 
 ## License
 
@@ -1064,8 +1098,8 @@ GPL3 - See LICENSE file for details
 ## Contributing
 
 Contributions are welcome! Please visit:
-- GitHub: https://github.com/digitalec/deemon
-- Issues: https://github.com/digitalec/deemon/issues
+- GitHub: https://github.com/deathrashed/deemon
+- Issues: https://github.com/deathrashed/deemon/issues
 
 ## Acknowledgments
 
