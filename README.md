@@ -1,4 +1,4 @@
-<img src="deemon/assets/images/deemon.png" alt="deemon" width="">
+<img src="deemon/assets/images/deemon.png" alt="deemon" width="450">
 
 [About](#about) | [Installation](#installation) | [Docker](#docker) | [Configuration](#configuration) | [Commands](#commands) | [Examples](#examples) | [Support](#support)
 
