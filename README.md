@@ -1,11 +1,25 @@
-<img src="deemon/assets/images/deemon.png" alt="deemon" width="450">
+<p align="center">
+  <img src="deemon/assets/images/deemon.png" alt="deemon" width="600">
+</p>
 
-[About](#about) | [Installation](#installation) | [Configuration](#configuration) | [Commands](#commands) | [Examples](#examples) | [Support](#support)
+<p align="center">
+  <a href="#about">About</a> • 
+  <a href="#installation">Installation</a> • 
+  <a href="#configuration">Configuration</a> • 
+  <a href="#commands">Commands</a> • 
+  <a href="#examples">Examples</a> • 
+  <a href="#support">Support</a>
+</p>
 
-![PyPI](https://img.shields.io/pypi/v/deemon?style=for-the-badge)
-![Downloads](https://img.shields.io/pepy/dt/deemon?style=for-the-badge)
-![GitHub last release](https://img.shields.io/github/release-date/deathrashed/deemon?style=for-the-badge)
-![GitHub last commit](https://img.shields.io/github/last-commit/deathrashed/deemon?style=for-the-badge)
+<p align="center">
+  <a href="https://deemix.org/">
+    <img src="https://img.shields.io/static/v1?style=for-the-badge&logo=download&logoColor=white&label=Deemix&message=Downloader&color=8F05FF" alt="Deemix Downloader">
+  </a>
+  <a href="https://github.com/digitalec/deemon">
+    <img src="https://img.shields.io/badge/Forked-digitalec/deemon-red?style=for-the-badge&logo=github&logoColor=white" alt="Forked">
+  </a>
+  <img src="https://img.shields.io/github/last-commit/deathrashed/deemon?style=for-the-badge&logo=git&logoColor=white" alt="GitHub last commit">
+</p>
 
 ## About
 
@@ -26,8 +40,10 @@ deemon is a command line tool written in Python that monitors artists for new re
 - **Interactive Menu**: User-friendly TUI with styled menus and pagination
 - **Keyboard Maestro Ready**: Wrapper script included for automation workflows
 
+## Original Fork
+
 <details>
-<summary>Attribution (original fork)</summary>
+<summary>Attribution</summary>
 
 [About](#about) | [Installation](#installation) | [Docker](#docker) | [Documentation](https://digitalec.github.io/deemon) | [Support](#support)
 
@@ -123,10 +139,6 @@ If you are moving to venv from the Docker container, be sure to update your cron
 ### Getting Started
 You have to manually add artists, playlists, albums, etc.. deemon does not automatically pull artists unless they're being monitored. Refer to the documentation [here](https://digitalec.github.io/deemon/docs/commands/monitor.html).
 </details>
-
-## Support
-
-[Open an Issue](https://github.com/deathrashed/deemon/issues/new)
 
 ## Installation
 
@@ -1145,8 +1157,8 @@ deemon -v refresh
 
 ### Getting Help
 
-- Check documentation: https://github.com/deathrashed/deemon/tree/main/docs
-- Open an issue: https://github.com/deathrashed/deemon/issues/new
+- [Check Original Documentation](https://digitalec.github.io/deemon/docs/installation.html)
+- [Open an Issue](https://github.com/deathrashed/deemon/issues/new)
 
 </details>
 
@@ -1162,7 +1174,7 @@ Contributions are welcome! Please visit:
 
 ## Acknowledgments
 
-- deemix - Download engine
-- Deezer API - Music data source
-- Click - CLI framework
+- [Deemix](https://deemix.org) - Download engine
+- [Deezer API](https://developers.deezer.com/api) - Music data source
+- [Click](https://click.palletsprojects.com/) - CLI framework
 - All contributors and users
