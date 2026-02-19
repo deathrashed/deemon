@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>deemon</title>
+    <style>
+    	@import url('https://fonts.googleapis.com/css2?family=Baloo+Tammudu+2&display=swap');
+    	
+    	:root {
+    		--bg: #c0c0c0;
+    		--text: #708090;
+    		--banner-text: #404040;
+    		--card-bg: #f0f0f0;
+    		--date-badge-bg: #6106e5;
+    		--date-badge-text: #6106e5;
+    		--albuminfo-a: #70af71;
+    		--album-footer: #e0e0e0;
+    		--drop-shadow: #808080;
+    	}
+    	
+    	body {
+    		font-family: 'Baloo Tammudu 2', sans-serif;
+    		background: var(--bg);
+            margin:0;
+    	}
+    	
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--bg: #000000;
+				--text: #ffffff;
+    			--banner-text: #ffffff;
+				--card-bg: #000000;
+    			--date-badge-bg: #ffffff;
+    			--date-badge-text: #ffffff;
+    			--albuminfo-a: #70af71;
+    			--album-footer: #303030;
+    			--drop-shadow: #000000;
+			}
+		}
+    	
+    	a {
+    		text-decoration: none;
+    		color: var(--albuminfo-a);
+    	}
+    	
+    	a:hover {
+    		text-decoration: underline;
+    	}
+    	
+    	.container {
+    		position: relative;
+    		font-family: sans-serif;
+    		background: var(--card-bg);
+    	}
+    	
+    	.album.container {
+    		display: flex;
+    		flex-wrap: wrap;
+    		justify-content: left;
+    		align-items: left;
+    	}
+    	
+    	.album {
+    		width:100%;
+    		background: var(--card-bg);
+    		box-sizing: border-box;
+    		padding: 10px;
+    	}
+    	
+    	.album.header {
+    		border-top-left-radius: 17px;
+    		border-top-right-radius: 17px;
+    		background: var(--card-bg);
+    		height: 150px;
+    		display: flex;
+    		justify-content: center;
+    		align-items: center;
+    		color: #6106e5;
+    		padding-top: 35px;
+    		font-family: 'Baloo Tammudu 2', sans-serif;
+    		font-weight: bold;
+    		font-size: 2.5em;
+    	}
+    	
+    	.album.updates {
+    		display: flex;
+    		justify-content: center;
+    		align-items: center;
+    		background: #70af71;
+    		font-family: sans-serif;
+    		font-size: 1em;
+    		color: #fff;
+    		margin-bottom: 20px;
+    	}
+    	
+    	.album.new-release-banner {
+    		display: flex;
+    		justify-content: center;
+    		align-items: center;
+    		font-size: 1.25em;
+    		margin-bottom: -10px;
+    		color: var(--banner-text);
+    	}
+    	
+    	.album.body {
+    		flex: 0 0 25%;
+    		min-width: 350px;
+    		color: var(--text);
+    		padding: 0px;
+    		padding-left: 10px;
+    		font-size: 0.9em;
+    		display: flex;
+    		margin-bottom: 30px;
+    	}
+    	
+    	.album.date {
+    		margin-top: 40px;
+    		margin-bottom: 30px;
+    	}
+    	
+    	.album.date.badge {
+    		color: var(--date-badge-text);
+    		background: none;
+    		border-radius: 7px;
+    		border: 1px solid var(--date-badge-bg);
+    		text-shadow: none;
+    		font-size: 1em;
+    		font-family: sans-serif;
+    	}
+    	
+    	.album.subheader {
+    		display: flex;
+    		justify-content: center;
+    		align-items: center;
+    	}
+    	
+    	.footerarea {
+    		display: flex;
+    		justify-content: center;
+    		align-items: center;
+    		height: 50px;
+    		color: #a0a0a0;
+    	}
+    	
+    	.album.support {
+    		font-size: 0.8em;
+    		line-height: 1em;
+    	}
+    	
+    	.album.footer {
+    		border-bottom-left-radius: 7px;
+    		border-bottom-right-radius: 7px;
+    		font-family: monospace;
+            font-size: 0.60em;
+    		background: var(--album-footer);
+    	}
+    	
+    	.albumtitle {
+    		margin-top: 5px;
+    		font-weight: bold;
+    	}
+    	
+    	.artistname {
+    		font-style:italic;
+    		padding-bottom:10px;
+    	}
+    	
+    	.albuminfo {
+    	}
+    	
+    	.albuminfo a {
+    		color: var(--albuminfo-a);
+    	}
+    	
+    	.albumart {
+    		float: left;
+    		margin-right: 20px;
+    	}
+    	
+    	.albumart img {
+    		border-radius: 7px;
+    		filter: drop-shadow(0.1rem 0.1rem 0.2rem var(--drop-shadow));
+    		width: 150px;
+    		height: 150px;
+    	}
+    </style>
+  </head>
+  <body>
+	<div class="container">
+		<div class="album header">
+			deemon
+		</div>
+		<div class="album updates" style="{VIEW_UPDATE_MESSAGE}">
+			{UPDATE_MESSAGE}
+		</div>
+		<div class="album new-release-banner">
+			{NEW_RELEASE_COUNT} new release(s) were found!
+		</div>
+		<!---- START ALBUM LIST HERE ---->
+		<div class="album container">
+			{NEW_RELEASE_LIST}
+		</div>
+		<!---- END ALBUM LIST HERE ---->
+		<div class="album support footerarea">
+			<span style="white-space: pre-line;">
+				Open an issue on <a href="https://github.com/digitalec/deemon">GitHub</a> or join us on <a href="https://discord.gg/KzNCG2tkvn">Discord</a>
+			</span>
+		</div>
+		<div class="album footer footerarea">
+			{DEEMON_VER} | {PY_VER} | {SYS_VER}
+		</div>
+	</div>
+  </body>
+</html>
