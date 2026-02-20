@@ -22,6 +22,16 @@
   <img src="https://img.shields.io/github/last-commit/deathrashed/deemon?style=for-the-badge&logo=git&logoColor=white" alt="GitHub last commit">
 </p>
 
+## Quick Install
+
+```bash
+git clone https://github.com/deathrashed/deemon.git ~/deemon && cd ~/deemon && ./install.sh
+```
+
+That's it! `deemon` is now installed globally and ready to use. Run `deemon --init` to get started.
+
+---
+
 ## About
 
 deemon is a command line tool written in Python that monitors artists for new releases, provides email notifications, and integrates with the deemix library to automatically download new releases from Deezer.
@@ -44,7 +54,7 @@ deemon is a command line tool written in Python that monitors artists for new re
 ## Original Fork
 
 <details>
-<summary>Attribution</summary>
+<summary>🙏 Attribution & Original Project</summary>
 
 [About](#about) | [Installation](#installation) | [Docker](#docker) | [Documentation](https://digitalec.github.io/deemon) | [Support](#support)
 
@@ -144,7 +154,7 @@ You have to manually add artists, playlists, albums, etc.. deemon does not autom
 ## Installation
 
 <details>
-<summary>Show installation options</summary>
+<summary>📦 Installation Options</summary>
 
 ### Prerequisites
 
@@ -231,7 +241,7 @@ $ deemon refresh
 ## Configuration
 
 <details>
-<summary>Show configuration guide</summary>
+<summary>⚙️ Configuration Guide</summary>
 
 ### Initial Setup
 
@@ -413,7 +423,7 @@ Or edit `config.json` directly:
 ## Commands
 
 <details>
-<summary>Show command reference</summary>
+<summary>🚀 Command Reference</summary>
 
 ### Overview
 
@@ -919,7 +929,7 @@ deemon extra
 ## Examples
 
 <details>
-<summary>Show example workflows</summary>
+<summary>💡 Example Workflows</summary>
 
 ### Basic Workflow
 
@@ -1076,7 +1086,7 @@ deemon discography -b "Pink Floyd" -a "The Dark Side of the Moon" --print-only
 ## Automation
 
 <details>
-<summary>Show automation examples</summary>
+<summary>🤖 Automation Examples</summary>
 
 ### Cron (Linux/macOS)
 
@@ -1103,7 +1113,7 @@ Add to crontab (`crontab -e`):
 ## Troubleshooting
 
 <details>
-<summary>Show troubleshooting guide</summary>
+<summary>🔧 Troubleshooting Guide</summary>
 
 ### Common Issues
 

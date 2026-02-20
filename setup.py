@@ -1,7 +1,7 @@
 from pathlib import Path
 from setuptools import setup, find_packages
 
-__version__ = '2.22'
+__version__ = '3.0'
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
@@ -13,7 +13,7 @@ DESCRIPTION = "Monitor new releases by a specified list of artists and auto down
 setup(
     name="deemon",
     version=__version__,
-    author="digitalec",
+    author="deathrashed",
     description=DESCRIPTION,
     long_description=README,
     long_description_content_type="text/markdown",
@@ -27,7 +27,7 @@ setup(
     include_package_data=True,
     python_requires=">=3.8",
     install_requires=required,
-    url="https://github.com/digitalec/deemon",
+    url="https://github.com/deathrashed/deemon",
     entry_points = {
         "console_scripts": ["deemon=deemon.__main__:main"],
     }
