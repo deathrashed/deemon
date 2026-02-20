@@ -3,14 +3,6 @@
 </p>
 
 
-<p align="center">
-  <a href="#about">About</a> • 
-  <a href="#installation">Installation</a> • 
-  <a href="#configuration">Configuration</a> • 
-  <a href="#commands">Commands</a> • 
-  <a href="#examples">Examples</a> • 
-  <a href="#support">Support</a>
-</p>
 
 <p align="center">
   <a href="https://deemix.org/">
@@ -151,10 +143,8 @@ If you are moving to venv from the Docker container, be sure to update your cron
 You have to manually add artists, playlists, albums, etc.. deemon does not automatically pull artists unless they're being monitored. Refer to the documentation [here](https://digitalec.github.io/deemon/docs/commands/monitor.html).
 </details>
 
-## Installation
-
 <details>
-<summary>📦 Installation Options</summary>
+<summary>📦 Installation</summary>
 
 ### Prerequisites
 
@@ -238,10 +228,8 @@ $ deemon refresh
 
 </details>
 
-## Configuration
-
 <details>
-<summary>⚙️ Configuration Guide</summary>
+<summary>⚙️ Configuration</summary>
 
 ### Initial Setup
 
@@ -420,10 +408,8 @@ Or edit `config.json` directly:
 
 </details>
 
-## Commands
-
 <details>
-<summary>🚀 Command Reference</summary>
+<summary>🚀 Commands</summary>
 
 ### Overview
 
@@ -926,10 +912,8 @@ deemon extra
 
 </details>
 
-## Examples
-
 <details>
-<summary>💡 Example Workflows</summary>
+<summary>💡 Examples</summary>
 
 ### Basic Workflow
 
@@ -1083,10 +1067,8 @@ deemon discography -b "Pink Floyd" -a "The Dark Side of the Moon" --print-only
 
 </details>
 
-## Automation
-
 <details>
-<summary>🤖 Automation Examples</summary>
+<summary>🤖 Automation</summary>
 
 ### Cron (Linux/macOS)
 
@@ -1110,10 +1092,8 @@ Add to crontab (`crontab -e`):
 
 </details>
 
-## Troubleshooting
-
 <details>
-<summary>🔧 Troubleshooting Guide</summary>
+<summary>🔧 Troubleshooting</summary>
 
 ### Common Issues
 
