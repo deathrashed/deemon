@@ -1060,7 +1060,11 @@ deemon -v refresh
 ## Original Project
 
 <details>
-<summary>🙏 Attribution & Original Project</summary>
+<summary>🫟 Attribution</summary>
+
+<p align="center">
+  <img src="deemon/assets/images/deemon.png" alt="deemon" width="600">
+</p>
 
 [Documentation](https://digitalec.github.io/deemon) | [Original Repo](https://github.com/digitalec/deemon) | [Support](https://github.com/digitalec/deemon/issues)
 
