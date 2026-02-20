@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="deemon/assets/images/deemon.png" alt="deemon" width="600">
+  <img src="deemon/assets/images/deemon-cyan.png" alt="deemon" width="600">
 </p>
+
 
 <p align="center">
   <a href="#about">About</a> • 
