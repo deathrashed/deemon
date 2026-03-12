@@ -15,3 +15,6 @@ artists.txt
 createenv.sh
 .python-version
 Icon
+
+# macOS custom folder icon file
+Icon?
