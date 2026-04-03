@@ -7,6 +7,7 @@ from pathlib import Path
 import click
 import inquirer
 from packaging.version import parse as parse_version
+from packaging.version import InvalidVersion
 import requests
 
 from os import system
@@ -1511,11 +1512,17 @@ def run(ctx, whats_new, init, arl, verbose, profile):
                 db.set_latest_version(latest_ver)
             db.set_last_update_check()
         new_version = db.get_latest_ver()
-        if parse_version(new_version) > parse_version(__version__):
-            if parse_version(new_version).major > parse_version(__version__).major:
+        try:
+            parsed_new_version = parse_version(str(new_version)) if new_version else None
+        except InvalidVersion:
+            logger.warning(f"Skipping update notification because stored version is invalid: {new_version!r}")
+            parsed_new_version = None
+
+        if parsed_new_version and parsed_new_version > parse_version(__version__):
+            if parsed_new_version.major > parse_version(__version__).major:
                 config.set('update_available', new_version, False)
                 print("*" * 80)
-                logger.info(f"deemon {parse_version(new_version).major} is available. "
+                logger.info(f"deemon {parsed_new_version.major} is available. "
                             f"Please see the release notes before upgrading.")
                 logger.info("Release notes available at: https://github.com/digitalec/deemon/releases")
                 print("*" * 80)
