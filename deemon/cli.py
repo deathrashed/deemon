@@ -1599,7 +1599,7 @@ def global_command(url, bitrate, download_path):
 @click.option('-u', '--url', metavar='URL', multiple=True, help='Download by URL of artist/album/track/playlist')
 @click.option('-f', '--file', metavar='FILE', help='Download batch of artists or artist IDs from file', hidden=True)
 @click.option('--artist-file', metavar='FILE', help='Download batch of artists or artist IDs from file')
-@click.option('--album-file', metavar='FILE', help='Download batch of album IDs from file')
+@click.option('--album-file', metavar='FILE', help="Download batch of album IDs or 'Artist - Album' entries from file")
 @click.option('--track-file', metavar='FILE', help='Download batch of track IDs from file')
 @click.option('-a', '--after', 'from_date', metavar="YYYY-MM-DD", type=str, help='Grab releases released after this date')
 @click.option('-B', '--before', 'to_date', metavar="YYYY-MM-DD", type=str, help='Grab releases released before this date')

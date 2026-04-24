@@ -517,6 +517,18 @@ class Download:
     def download(self, artist, artist_id, album_id, url,
                  artist_file, track_file, album_file, track_id, auto=True, monitored=False):
 
+        def read_input_lines(file_path):
+            """Read a text file and ignore blank/comment-only lines."""
+            try:
+                with open(file_path, 'r', encoding='utf-8-sig', errors='replace') as handle:
+                    return [
+                        line.strip() for line in handle
+                        if line.strip() and not line.lstrip().startswith('#')
+                    ]
+            except OSError as exc:
+                logger.error(f"Unable to read input file '{file_path}': {exc}")
+                return []
+
         def filter_artist_by_record_type(artist):
             album_api = self.api.get_artist_albums(query={'artist_name': '', 'artist_id': artist['id']})
             filtered_albums = []
@@ -1252,6 +1264,44 @@ class Download:
                 import traceback
                 logger.debug(traceback.format_exc())
                 return []
+
+        if artist_file:
+            logger.debug("Processing artist file")
+            artist_entries = read_input_lines(artist_file)
+            if artist_entries:
+                processed_artists = dataprocessor.process_input_file(artist_entries)
+                for artist_entry in processed_artists:
+                    if isinstance(artist_entry, int):
+                        process_artist_by_id(artist_entry)
+                    else:
+                        process_artist_by_name(artist_entry)
+
+        if album_file:
+            logger.debug("Processing album file")
+            album_entries = read_input_lines(album_file)
+            album_ids_from_file = []
+            album_queries_from_file = []
+
+            for entry in album_entries:
+                try:
+                    album_ids_from_file.append(int(entry))
+                except ValueError:
+                    album_queries_from_file.append(entry)
+
+            for album_entry_id in album_ids_from_file:
+                process_album_by_id(album_entry_id)
+
+            if album_queries_from_file:
+                process_artist_album_file(album_queries_from_file)
+
+        if track_file:
+            logger.debug("Processing track file")
+            track_entries = read_input_lines(track_file)
+            for entry in track_entries:
+                try:
+                    process_track_file(int(entry))
+                except ValueError:
+                    logger.warning(f"Skipping invalid track ID: '{entry}'")
 
         if url:
             logger.debug("Processing URLs")

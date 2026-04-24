@@ -1,0 +1,1 @@
+/Users/rd/deemon/raycast/deemon-discography-url copy.sh
