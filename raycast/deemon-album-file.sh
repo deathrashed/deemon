@@ -1,11 +1,11 @@
 #!/bin/bash
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Deemon - Download from File
+# @raycast.title Deemon • From File
 # @raycast.mode fullOutput
 # @raycast.packageName Deemon
 # Optional parameters:
-# @raycast.icon /Users/rd/deemon/deemon/assets/images/deemix-yellow.png
+# @raycast.icon /Users/rd/deemon/deemon/assets/images/deemix-orange.png
 # @raycast.currentDirectoryPath ~
 # @raycast.argument1 { "type": "text", "placeholder": "Path to file with album list" }
 # Documentation:
@@ -39,7 +39,7 @@ if [ -z "$1" ]; then
 fi
 
 # Call deemon with album-file option
-python3 -m deemon download --album-file "$1"
+python3 -m deemon download --collection-matcher --album-file "$1"
 
 # Exit with deemon's exit code
 exit $?

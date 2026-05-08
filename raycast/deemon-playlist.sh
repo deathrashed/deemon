@@ -1,7 +1,7 @@
 #!/bin/bash
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Deemon - Download Playlist
+# @raycast.title Deemon • Playlist - URL
 # @raycast.mode fullOutput
 # @raycast.packageName Deemon
 # Optional parameters:

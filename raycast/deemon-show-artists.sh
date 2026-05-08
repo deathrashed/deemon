@@ -1,11 +1,11 @@
 #!/bin/bash
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Deemon - Show Artists
+# @raycast.title Deemon • Monitor - Show Artists
 # @raycast.mode fullOutput
 # @raycast.packageName Deemon
 # Optional parameters:
-# @raycast.icon ./deemon/assets/images/deemon-cyan.png
+# @raycast.icon /Users/rd/deemon/deemon/assets/images/deemix-gray.png
 # @raycast.currentDirectoryPath ~
 # Documentation:
 # @raycast.description Show all monitored artists

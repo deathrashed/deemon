@@ -1,11 +1,11 @@
 #!/bin/bash
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Deemon - Refresh
+# @raycast.title Deemon • Monitor - Refresh
 # @raycast.mode fullOutput
 # @raycast.packageName Deemon
 # Optional parameters:
-# @raycast.icon ./deemon/assets/images/deemix-orange.png
+# @raycast.icon /Users/rd/deemon/deemon/assets/images/deemix-yellow.png
 # @raycast.currentDirectoryPath ~
 # Documentation:
 # @raycast.description Check monitored artists for new releases

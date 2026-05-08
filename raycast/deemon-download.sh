@@ -1,7 +1,7 @@
 #!/bin/bash
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Deemon - Download Album
+# @raycast.title Deemon • Band - Album
 # @raycast.mode fullOutput
 # @raycast.packageName Deemon
 # Optional parameters:

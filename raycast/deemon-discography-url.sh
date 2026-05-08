@@ -1,7 +1,7 @@
 #!/bin/bash
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Deemon - Discography from Spotify Album
+# @raycast.title Deemon • Discography - Spotify URL
 # @raycast.mode fullOutput
 # @raycast.packageName Deemon
 # Optional parameters:

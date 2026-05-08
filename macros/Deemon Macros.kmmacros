@@ -443,7 +443,7 @@
 						<key>Source</key>
 						<string>Nothing</string>
 						<key>Text</key>
-						<string>/Users/rd/Scripts/Riley/deemon/deemon-wrapper.sh discography --band "$KMVAR_Artist" --album "$KMVAR_Album"</string>
+						<string>/Users/rd/Scripts/Riley/Audio/Acquisition/deemon/deemon-wrapper.sh discography --band "$KMVAR_Artist" --album "$KMVAR_Album"</string>
 						<key>TimeOutAbortsMacro</key>
 						<true/>
 						<key>TrimResults</key>
@@ -1401,7 +1401,7 @@ Format:
 						<key>Source</key>
 						<string>Nothing</string>
 						<key>Text</key>
-						<string>/Users/rd/Scripts/Riley/deemon/deemon-wrapper.sh download --album-file "$KMVAR_FilePath"</string>
+						<string>/Users/rd/Scripts/Riley/Audio/Acquisition/deemon/deemon-wrapper.sh download --album-file "$KMVAR_FilePath"</string>
 						<key>TimeOutAbortsMacro</key>
 						<true/>
 						<key>TrimResults</key>
@@ -2325,7 +2325,7 @@ Format:
 						<key>Source</key>
 						<string>Nothing</string>
 						<key>Text</key>
-						<string>/Users/rd/Scripts/Riley/deemon/deemon-wrapper.sh global "$KMVAR_URL"</string>
+						<string>/Users/rd/Scripts/Riley/Audio/Acquisition/deemon/deemon-wrapper.sh global "$KMVAR_URL"</string>
 						<key>TimeOutAbortsMacro</key>
 						<true/>
 						<key>TrimResults</key>
@@ -3248,7 +3248,7 @@ Format:
 						<key>Source</key>
 						<string>Nothing</string>
 						<key>Text</key>
-						<string>/Users/rd/Scripts/Riley/deemon/deemon-wrapper.sh playlist -c "$KMVAR_URL"</string>
+						<string>/Users/rd/Scripts/Riley/Audio/Acquisition/deemon/deemon-wrapper.sh playlist -c "$KMVAR_URL"</string>
 						<key>TimeOutAbortsMacro</key>
 						<true/>
 						<key>TrimResults</key>
@@ -4121,7 +4121,7 @@ Format:
 						<key>Source</key>
 						<string>Nothing</string>
 						<key>Text</key>
-						<string>/Users/rd/Scripts/Riley/deemon/deemon-wrapper.sh download --band "$KMVAR_Artist" --album "$KMVAR_Album"</string>
+						<string>/Users/rd/Scripts/Riley/Audio/Acquisition/deemon/deemon-wrapper.sh download --band "$KMVAR_Artist" --album "$KMVAR_Album"</string>
 						<key>TimeOutAbortsMacro</key>
 						<true/>
 						<key>TrimResults</key>
