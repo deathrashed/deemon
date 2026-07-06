@@ -1,5 +1,5 @@
 {
-  "downloadLocation": "/Users/rd/deemon/music",
+  "downloadLocation": "/Users/rd/Scripts/Riley/audio/download/deemon/music",
   "tracknameTemplate": "%artist% - %title%",
   "albumTracknameTemplate": "%tracknumber% - %title%",
   "playlistTracknameTemplate": "%position% - %artist% - %title%",

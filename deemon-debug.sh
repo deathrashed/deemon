@@ -24,7 +24,7 @@ echo ""
 # Set environment
 export HOME="/Users/rd"
 export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
-cd /Users/rd/deemon
+cd "$HOME/Scripts/Riley/audio/download/deemon"
 
 echo "After setting:"
 echo "HOME: $HOME"

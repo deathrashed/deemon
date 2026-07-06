@@ -5,7 +5,7 @@
 # @raycast.mode fullOutput
 # @raycast.packageName Deemon
 # Optional parameters:
-# @raycast.icon /Users/rd/deemon/deemon/assets/images/deemix-yellow.png
+# @raycast.icon ~/Scripts/Riley/audio/download/deemon/deemon/assets/images/deemix-yellow.png
 # @raycast.currentDirectoryPath ~
 # Documentation:
 # @raycast.description Check monitored artists for new releases
@@ -22,7 +22,7 @@ export XDG_CONFIG_HOME="/Users/rd/.config"
 export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
 # Change to deemon source directory
-cd "/Users/rd/deemon" 2>/dev/null || true
+cd "$HOME/Scripts/Riley/audio/download/deemon" 2>/dev/null || true
 
 # Call deemon
 python3 -m deemon refresh

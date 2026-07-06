@@ -7,7 +7,7 @@ set -euo pipefail
 # @raycast.mode fullOutput
 # @raycast.packageName Deemon
 # Optional parameters:
-# @raycast.icon /Users/rd/deemon/deemon/assets/images/deemix-yellow.png
+# @raycast.icon ~/Scripts/Riley/audio/download/deemon/deemon/assets/images/deemix-yellow.png
 # @raycast.currentDirectoryPath ~
 # @raycast.argument1 { "type": "text", "placeholder": "Spotify Album URL" }
 # Documentation:
@@ -20,7 +20,7 @@ export HOME="/Users/rd"
 export XDG_CONFIG_HOME="/Users/rd/.config"
 export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
-DEEMON_DIR="/Users/rd/deemon"
+DEEMON_DIR="$HOME/Scripts/Riley/audio/download/deemon"
 SPOTIFY_CONFIG="/Users/rd/.config/deemix/spotify/config.json"
 SPOTIFY_URL="${1:-}"
 
