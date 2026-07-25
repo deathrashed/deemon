@@ -29,6 +29,9 @@ setup(
     install_requires=required,
     url="https://github.com/deathrashed/deemon",
     entry_points = {
-        "console_scripts": ["deemon=deemon.__main__:main"],
+        "console_scripts": [
+            "deemon=deemon.__main__:main",
+            "deemon-mcp=deemon_mcp:main",
+        ],
     }
 )

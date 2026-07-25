@@ -16,6 +16,7 @@ import sys
 import os
 import logging
 import argparse
+import json
 
 # Ensure we can import deemon modules
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -44,6 +45,11 @@ def main():
         "--print-only",
         action="store_true",
         help="Only print missing album URLs, don't download"
+    )
+    parser.add_argument(
+        "--report-json",
+        action="store_true",
+        help="Print a structured read-only discography report and don't download"
     )
     args = parser.parse_args()
 
@@ -171,6 +177,8 @@ def main():
             "artist": artist_name,
             "album": alb.get("title", "Unknown"),
             "year": str(alb.get("release_date", "") or "")[:4],
+            "release_date": alb.get("release_date") or "",
+            "record_type": (alb.get("record_type") or "release").lower(),
             "id": alb.get("id"),
             "url": f"https://www.deezer.com/album/{alb.get('id')}",
         })
@@ -194,6 +202,22 @@ def main():
         else:
             logger.info(f"  ⬜  {artist_name_check} - {album_title}  ({album_year})")
             missing_albums.append(album_data)
+
+    if args.report_json:
+        report = {
+            "artist": artist_name,
+            "artist_id": artist_id,
+            "resolved_via": args.album,
+            "filter": type_label,
+            "total_releases": total_before,
+            "filtered_releases": total_after_type,
+            "duplicate_titles_skipped": duplicates,
+            "releases": deezer_albums,
+            "existing": existing_albums,
+            "missing": missing_albums,
+        }
+        print("REPORT_JSON:" + json.dumps(report, ensure_ascii=False), flush=True)
+        sys.exit(0)
 
     # ── 8. Summary ────────────────────────────────────────────────────────
     logger.info("")
