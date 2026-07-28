@@ -31,7 +31,9 @@ setup(
     entry_points = {
         "console_scripts": [
             "deemon=deemon.__main__:main",
-            "deemon-mcp=deemon_mcp:main",
+            "deemon-mcp=deemon.integrations.mcp:main",
+            "deemon-km-discography=deemon.integrations.km:main",
+            "deemon-km-get=deemon.integrations.km_get:main",
         ],
     }
 )

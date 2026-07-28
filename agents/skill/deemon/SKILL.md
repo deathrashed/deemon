@@ -7,7 +7,7 @@ description: "Music monitoring and downloader CLI + MCP via Deezer. Use when the
 
 deemon is both an MCP server and a CLI tool for monitoring and downloading music from Deezer. Agents with terminal access should prefer the CLI for downloads (it's faster and more flexible), and use the MCP for structured queries (search, list, info).
 
-Project root: `/Users/rd/Scripts/Riley/audio/download/deemon`
+Set `DEEMON_ROOT` to the absolute path of this checkout before using the path examples below.
 
 ## CLI Quick Reference
 
@@ -144,22 +144,22 @@ Key locations:
 
 | What | Path |
 |------|------|
-| Project root | `/Users/rd/Scripts/Riley/audio/download/deemon` |
-| CLI entry | `/Users/rd/Scripts/Riley/audio/download/deemon/.venv/bin/deemon` |
+| Project root | `$DEEMON_ROOT` |
+| CLI entry | `<DEEMON_ROOT>/.venv/bin/deemon` |
 | Config | `~/Library/Application Support/deemon/config.json` |
 | Database | `~/Library/Application Support/deemon/deemon.db` |
-| MCP server | `/Users/rd/Scripts/Riley/audio/download/deemon/deemon_mcp.py` |
-| MCP agent config | `/Users/rd/Scripts/Riley/audio/download/deemon/agents/mcp/` |
-| Skill root | `/Users/rd/Scripts/Riley/audio/download/deemon/agents/skill/deemon/` |
+| MCP server | `<DEEMON_ROOT>/scripts/deemon-mcp.py` |
+| MCP agent config | `<DEEMON_ROOT>/agents/mcp/` |
+| Skill root | `<DEEMON_ROOT>/agents/skill/deemon/` |
 
 ### Active venv
 
 ```bash
-source /Users/rd/Scripts/Riley/audio/download/deemon/.venv/bin/activate
+source "$DEEMON_ROOT/.venv/bin/activate"
 deemon download "Artist - Album"
 ```
 
 Or skip activation with the full path:
 ```bash
-/Users/rd/Scripts/Riley/audio/download/deemon/.venv/bin/deemon download "Artist - Album"
+"$DEEMON_ROOT/.venv/bin/deemon" download "Artist - Album"
 ```

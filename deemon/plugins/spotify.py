@@ -1,4 +1,3 @@
-# /Users/rd/deemon/deemon/plugins/spotify.py
 from concurrent.futures import ThreadPoolExecutor
 import json
 from copy import deepcopy
@@ -391,28 +390,40 @@ class Spotify(Plugin):
         return deezerPlaylist
 
     def loadSettings(self):
-        if not (self.configFolder / 'config.json').is_file():
-            with open(self.configFolder / 'config.json', 'w', encoding="utf-8") as f:
-                json.dump({**self.credentials, **self.settings}, f, indent=2)
+        central_settings = {
+            'clientId': config.spotify_client_id(),
+            'clientSecret': config.spotify_client_secret(),
+            'fallbackSearch': config.spotify_fallback_search(),
+        }
+        if central_settings['clientId'] or central_settings['clientSecret']:
+            self.setSettings(central_settings)
+            self.checkCredentials()
+            return
 
-        with open(self.configFolder / 'config.json', 'r', encoding="utf-8") as settingsFile:
+        legacy_file = self.configFolder / 'config.json'
+        if legacy_file.is_file():
             try:
-                settings = json.load(settingsFile)
-            except json.decoder.JSONDecodeError:
-                with open(self.configFolder / 'config.json', 'w', encoding="utf-8") as f:
-                    json.dump({**self.credentials, **self.settings}, f, indent=2)
-                settings = deepcopy({**self.credentials, **self.settings})
-            except Exception:
-                settings = deepcopy({**self.credentials, **self.settings})
-
-        self.setSettings(settings)
+                with open(legacy_file, 'r', encoding="utf-8") as settings_file:
+                    legacy_settings = json.load(settings_file)
+                self.setSettings(legacy_settings)
+                if self.credentials['clientId'] and self.credentials['clientSecret']:
+                    config.set('client_id', self.credentials['clientId'])
+                    config.set('client_secret', self.credentials['clientSecret'])
+                    config.set('fallback_search', bool(self.settings.get('fallbackSearch', True)))
+                    config.save()
+            except (OSError, ValueError, KeyError):
+                self.setSettings(central_settings)
+        else:
+            self.setSettings(central_settings)
         self.checkCredentials()
 
     def saveSettings(self, newSettings=None):
         if newSettings: self.setSettings(newSettings)
         self.checkCredentials()
-        with open(self.configFolder / 'config.json', 'w', encoding="utf-8") as f:
-            json.dump({**self.credentials, **self.settings}, f, indent=2)
+        config.set('client_id', self.credentials['clientId'])
+        config.set('client_secret', self.credentials['clientSecret'])
+        config.set('fallback_search', bool(self.settings.get('fallbackSearch', True)))
+        config.save()
 
     def getSettings(self):
         return {**self.credentials, **self.settings}
@@ -453,7 +464,7 @@ class Spotify(Plugin):
                                                                   client_secret=self.credentials['clientSecret'],
                                                                   cache_handler=cache_handler)
             self.sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-            self.sp.user_playlists('spotify')
+            self.sp.search(q='deemon', type='artist', limit=1)
             self.enabled = True
         except Exception:
             self.enabled = False

@@ -15,10 +15,9 @@ The project is structured as a standalone Python package with supporting integra
 - **Data Persistence**:
   - Config: `~/.config/deemon/config.json`
   - Database: `~/.local/share/deemon/deemon.db` (SQLite)
-- **Integrations**:
-  - `raycast/`: Source code for the Raycast extension.
-  - `macros/`: Keyboard Maestro integrations.
-  - `raycast_bridge.py`: Facilitates JSON communication between the Python core and the Raycast TS extension.
+- **Scripts (`scripts/`)**: Portable shell and Python utilities for installation, diagnostics, automation wrappers, and one-off collection operations.
+- **Integrations (`integrations/`)**: Optional Keyboard Maestro assets and Raycast shell integrations.
+- **Package integrations (`deemon/integrations/`)**: MCP and Raycast bridge implementations.
 
 ## 2. Setup Documentation
 
@@ -31,12 +30,7 @@ The project is structured as a standalone Python package with supporting integra
 ### Initial Installation
 Execute these commands within the `deemon` directory:
 ```bash
-# Create and activate venv
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install in editable mode
-./install.sh # or pip install -e .
+./install.sh
 ```
 
 ### Configuration
@@ -51,12 +45,14 @@ source .venv/bin/activate
 ### Directory Map
 - `deemon/core/`: The "Engine". Start here to understand API or DB changes.
 - `deemon/cmd/`: The "Brain". Start here to add or modify command logic.
-- `raycast/`: The "Face". UI components for the Raycast extension.
+- `scripts/`: Portable utility entry points. `install.sh` and `uninstall.sh` at the repository root delegate here for convenience.
+- `integrations/`: Optional external integration assets.
+- `examples/`: Sanitized configuration examples; runtime settings do not belong in the repository.
 
 ### Quick Reference: "Where do I find X?"
 - **Adding a new CLI command?** -> `deemon/cli.py` and a new file in `deemon/cmd/`.
 - **Modifying the SQLite schema?** -> `deemon/core/db.py`.
-- **Updating the Raycast UI?** -> `raycast/src/`.
+- **Updating a Raycast integration?** -> `integrations/raycast-shell/` or the separately installed Raycast extension.
 
 ## 4. Code Patterns & Conventions
 
@@ -69,7 +65,7 @@ source .venv/bin/activate
 - **Profiles**: Supports multiple configuration profiles (e.g., "Main", "Test").
 
 ### Communication Pattern
-- **Raycast Bridge**: The `raycast_bridge.py` script serves as a JSON-only interface for the Raycast extension. It should always return valid JSON to stdout.
+- **Raycast Bridge**: `deemon/integrations/raycast.py` serves as a JSON-only interface for the Raycast extension. `scripts/raycast-bridge.py` is its executable launcher.
 
 ## 5. Extension Guidelines
 

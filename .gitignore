@@ -1,4 +1,5 @@
 __pycache__/
+.venv/
 .idea/
 build
 deemon.egg-info
@@ -8,6 +9,7 @@ venv
 .cache
 .worktrees/
 **/.DS_Store
+docs/archive.7z
 artists.txt
 /deemon/tests/
 .vscode/settings.json

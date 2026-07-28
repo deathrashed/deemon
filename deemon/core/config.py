@@ -51,6 +51,11 @@ DEFAULT_CONFIG = {
         "check_account_status": True,
         "halt_download_on_error": False,
     },
+    "spotify": {
+        "client_id": "",
+        "client_secret": "",
+        "fallback_search": True,
+    },
     "smtp_settings": {
         "server": "",
         "port": 465,
@@ -94,6 +99,7 @@ class Config(object):
                     with open(arl_file) as f:
                         arl_from_file = f.readline().replace("\n", "")
                         self.set('arl', arl_from_file)
+                        self.save()
                         logger.debug("Successfully loaded ARL")
 
             if len(self.arl()) > 0 and len(self.arl()) != 192:
@@ -310,6 +316,10 @@ class Config(object):
         return Config._CONFIG
 
     @staticmethod
+    def save() -> None:
+        Config.__write_modified_config()
+
+    @staticmethod
     def plex_baseurl() -> str:
         return Config._CONFIG.get('plex').get('base_url')
 
@@ -332,6 +342,18 @@ class Config(object):
     @staticmethod
     def arl() -> str:
         return Config._CONFIG.get('deemix').get('arl')
+
+    @staticmethod
+    def spotify_client_id() -> str:
+        return Config._CONFIG.get('spotify', {}).get('client_id', '')
+
+    @staticmethod
+    def spotify_client_secret() -> str:
+        return Config._CONFIG.get('spotify', {}).get('client_secret', '')
+
+    @staticmethod
+    def spotify_fallback_search() -> bool:
+        return Config._CONFIG.get('spotify', {}).get('fallback_search', True)
 
     @staticmethod
     def release_max_age() -> int:

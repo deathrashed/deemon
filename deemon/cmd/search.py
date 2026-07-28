@@ -7,7 +7,7 @@ from deemon.cmd import download
 from deemon.cmd import monitor as mon
 from deemon.core import db, api
 from deemon.core.config import Config as config
-from deemon.utils import dates
+from deemon.utils import dates, tui
 
 logger = logging.getLogger(__name__)
 
@@ -92,9 +92,7 @@ class Search:
 
         while exit_search is False:
             self.clear()
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{' ' * 15}DEEMON SEARCH{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+            tui.header("S E A R C H", "Find artists, albums, and releases", "󰍉")
 
             if len(self.queue_list) > 0:
                 self.display_options(options=f"{COLOR_GREEN}(d){COLOR_RESET} Download Queue  {COLOR_CYAN}(Q){COLOR_RESET} Show Queue  {COLOR_DIM}(b){COLOR_RESET} Back")
@@ -102,9 +100,8 @@ class Search:
                 search_query = query
                 query = None
             else:
-                print(f"{COLOR_DIM}Enter an artist or album to search ('artist - album' for albums){COLOR_RESET}")
-                print(f"{COLOR_DIM}Type 'b' to go back{COLOR_RESET}\n")
-                search_query = input(f"{COLOR_BRIGHT_BLUE}>{COLOR_RESET} {self.show_mini_queue()} ")
+                tui.hint("artist  •  artist - album  •  b back")
+                search_query = input(f"\n{COLOR_BRIGHT_BLUE}❯{COLOR_RESET} {COLOR_BOLD}Search:{COLOR_RESET} {self.show_mini_queue()} ")
                 if search_query.lower() == "b":
                     return
                 if search_query == "exit":
@@ -125,9 +122,7 @@ class Search:
                     continue
 
             self.clear()
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{' ' * 15}DEEMON SEARCH{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+            tui.header("S E A R C H", f"Results for {search_query}", "󰍉")
 
             if ' - ' in search_query:
                 artist_part, album_part = [x.strip() for x in search_query.split(' - ', 1)]
@@ -179,12 +174,11 @@ class Search:
 
         while exit_artist is False:
             self.clear()
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-            print(f"{COLOR_CYAN}Search results for artist:{COLOR_RESET} {COLOR_BOLD}{query}{COLOR_RESET}")
+            tui.header("A R T I S T  R E S U L T S", f"Search results for {query}", "󰀻")
             total_pages = (len(results) + page_size - 1) // page_size
             if total_pages > 1:
                 print(f"{COLOR_DIM}Page {page + 1} of {total_pages}{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+            print()
 
             # Calculate page slice
             start_idx = page * page_size
@@ -361,13 +355,12 @@ class Search:
         """Display a single album and provide options to download/queue it"""
         while True:
             self.clear()
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_GREEN}Album found:{COLOR_RESET} {COLOR_BOLD}{artist['name']}{COLOR_RESET} - {COLOR_BOLD}{album['title']}{COLOR_RESET}")
-            print(f"{COLOR_CYAN}Release Date:{COLOR_RESET} {COLOR_YELLOW}{dates.get_year(album['release_date'])}{COLOR_RESET}")
-            print(f"{COLOR_CYAN}Type:{COLOR_RESET} {COLOR_YELLOW}{album['record_type'].title()}{COLOR_RESET}")
+            tui.header("A L B U M  F O U N D", f"{artist['name']} - {album['title']}", "󰈙")
+            tui.detail("Release date", str(dates.get_year(album['release_date'])))
+            tui.detail("Type", album['record_type'].title())
             if album.get('explicit_lyrics', 0) > 0:
                 print(f"{COLOR_RED}[E] Explicit Content{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+            print()
 
             # Build options string
             options = []
@@ -424,12 +417,10 @@ class Search:
             filter_text = filter_text + " (Explicit Only)"
         desc_text = "desc" if self.desc else "asc"
         sort_text = self.sort.replace("_", " ").title() + " (" + desc_text + ")"
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_CYAN}Discography for artist:{COLOR_RESET} {COLOR_BOLD}{artist}{COLOR_RESET}")
+        tui.header("D I S C O G R A P H Y", artist, "󰍹")
         if total_pages and page:
             print(f"{COLOR_DIM}Page {page} of {total_pages}{COLOR_RESET}")
-        print(f"{COLOR_DIM}Filter: {COLOR_YELLOW}{filter_text}{COLOR_RESET}{COLOR_DIM} | Sort: {COLOR_YELLOW}{sort_text}{COLOR_RESET}{COLOR_DIM} | Year: {COLOR_YELLOW}{filter_year}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.status([f"Filter: {filter_text}", f"Sort: {sort_text}", f"Year: {filter_year}"])
 
     def album_menu_options(self, monitored, page: int = 0, total_pages: int = 1):
         print("")
@@ -674,23 +665,21 @@ class Search:
         self.display_options(options=ui_options)
 
     def track_menu_header(self, album, page: int = None, total_pages: int = None):
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_CYAN}Artist:{COLOR_RESET} {COLOR_BOLD}{self.artist}{COLOR_RESET}  |  {COLOR_CYAN}Album:{COLOR_RESET} {COLOR_BOLD}{album['title']}{COLOR_RESET}")
+        tui.header("T R A C K S", f"{self.artist} - {album['title']}", "󰎆")
         if total_pages and page:
             print(f"{COLOR_DIM}Page {page} of {total_pages}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        print()
 
     def album_options_menu(self, album: dict):
         """Show options for a single album when selected from album list"""
         while True:
             self.clear()
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_GREEN}Selected Album:{COLOR_RESET} {COLOR_BOLD}{self.artist}{COLOR_RESET} - {COLOR_BOLD}{album['title']}{COLOR_RESET}")
-            print(f"{COLOR_CYAN}Release Date:{COLOR_RESET} {COLOR_YELLOW}{dates.get_year(album['release_date'])}{COLOR_RESET}")
-            print(f"{COLOR_CYAN}Type:{COLOR_RESET} {COLOR_YELLOW}{album['record_type'].title()}{COLOR_RESET}")
+            tui.header("A L B U M  O P T I O N S", f"{self.artist} - {album['title']}", "󰈙")
+            tui.detail("Release date", str(dates.get_year(album['release_date'])))
+            tui.detail("Type", album['record_type'].title())
             if album.get('explicit_lyrics', 0) > 0:
                 print(f"{COLOR_RED}[E] Explicit Content{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+            print()
 
             options = []
             options.append(f"{COLOR_GREEN}(d){COLOR_RESET} {COLOR_BRIGHT_GREEN}Download Now{COLOR_RESET}")
@@ -819,14 +808,13 @@ class Search:
 
         while exit_queue_list is False:
             self.clear()
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{' ' * 20}DOWNLOAD QUEUE{COLOR_RESET}")
+            tui.header("D O W N L O A D  Q U E U E", "Items waiting to download", "󰒓")
 
             total_pages = max(1, (len(self.queue_list) + page_size - 1) // page_size)
             if len(self.queue_list) > page_size:
                 print(f"{COLOR_DIM}Page {page + 1} of {total_pages}{COLOR_RESET}")
 
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+            print()
 
             # Calculate page slice
             start_idx = page * page_size

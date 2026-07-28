@@ -1,4 +1,5 @@
 import json
+import importlib.util
 import logging
 import platform
 import sys
@@ -45,7 +46,16 @@ def clear_screen():
 def quick_get_menu():
     from deemon.core.resolver import InputResolver, ResolutionStatus
 
-    value = input("Paste a URL, artist - album, artist, or file path: ").strip()
+    clear_screen()
+    value = tui.input_screen(
+        "Q U I C K  G E T",
+        "Resolve an artist, album, URL, playlist, or import file",
+        "Paste input",
+        "b back  •  Deezer, Spotify, Artist - Album, artist, or file path",
+        "󰒓",
+    )
+    if value.lower() == 'b':
+        return
     if not value:
         return
     result = InputResolver().resolve(value)
@@ -59,6 +69,38 @@ def quick_get_menu():
     downloader.queue_resolved_urls([item.deezer_url for item in result.items])
     downloader.download_queue()
     input("Press Enter to continue...")
+
+
+def queue_menu():
+    while True:
+        clear_screen()
+        queued = _read_queue_file('queue.csv')[1]
+        failed = _read_queue_file('failed.csv')[1]
+        tui.header("Q U E U E  •  A C T I V I T Y", "Review pending work and failed downloads", "󰐢")
+        tui.section("󰐢", "SUMMARY")
+        tui.option("", "󰇚", "Pending", f"{len(queued)} item(s)")
+        tui.option("", "󰅙", "Failed", f"{len(failed)} item(s)")
+        tui.section("󰟓", "ACTIONS")
+        tui.option("1", "󰋊", "View Pending", "Show queued URLs and titles")
+        tui.option("2", "󰅙", "View Failed", "Show retryable failed URLs")
+        tui.option("3", "󰑐", "Retry Failed", "Uses the existing retry command")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to the main menu")
+        choice = tui.prompt("Queue")
+        if choice in {'1', '2'}:
+            rows = queued if choice == '1' else failed
+            print()
+            for row in rows or [{'url': 'No items.'}]:
+                print(row.get('url') or row.get('album_title') or row.get('track_title') or 'Unknown item')
+            input("Press Enter to continue...")
+        elif choice == '3':
+            if not failed:
+                print("No failed downloads to retry.")
+                input("Press Enter to continue...")
+            elif input(f"Retry {len(failed)} failed item(s)? [y/N]: ").strip().lower() == 'y':
+                queue_retry_command.callback(True, False, True)
+        elif choice.lower() == 'b':
+            return
 
 
 def interactive_menu():
@@ -80,11 +122,12 @@ def interactive_menu():
         active_profile = db.get_profile_by_id(config.profile_id()) or {}
         profile_name = active_profile.get('name', 'default')
         arl_status = 'ready' if config.arl() else 'missing ARL'
-        tui.header("  D E E M O N", "Monitor artists and download music")
+        tui.main_header()
         tui.status([f"󰒋 Profile: {profile_name}", f" Deezer: {arl_status}"])
         tui.section("", "DOWNLOAD")
         tui.option("1", "󰇚", "Download", "Albums, artists, playlists, files")
         tui.option("g", "󰒓", "Quick Get", "Paste a URL or search query")
+        tui.option("q", "󰐢", "Queue", "Review pending and failed downloads")
         tui.section("", "DISCOVER")
         tui.option("2", "󰍉", "Search", "Find and download music")
         tui.option("3", "󰀻", "Monitor", "Track artists and releases")
@@ -109,6 +152,8 @@ def interactive_menu():
             config_sub_menu()
         elif choice.lower() in {'g', 'get', 'quick get'}:
             quick_get_menu()
+        elif choice.lower() in {'q', 'queue'}:
+            queue_menu()
         elif choice.lower() == 'h':
             render_cheatsheet()
             input(f"\n{COLOR_DIM}Press Enter to continue...{COLOR_RESET}")
@@ -132,7 +177,7 @@ def monitor_sub_menu():
     clear_screen()
     while True:
         clear_screen()
-        tui.header("󰀻  M O N I T O R", "Track artists and check for new releases")
+        tui.header("M O N I T O R", "Track artists and check for new releases", "󰀻")
         tui.section("󰀻", "ARTISTS")
         tui.option("1", "󰍉", "Show Monitored", "View tracked artists")
         tui.option("2", "󰐕", "Monitor Artists", "Add artists to track")
@@ -167,11 +212,12 @@ def config_sub_menu():
     clear_screen()
     while True:
         clear_screen()
-        tui.header("  C O N F I G U R A T I O N", "Configure deemon and protect your setup")
+        tui.header("C O N F I G U R A T I O N", "Configure deemon and protect your setup", "")
         tui.section("󰟓", "SETTINGS")
         tui.option("1", "󰈙", "Artist Settings", "Configure monitored artists")
         tui.option("2", "󰁯", "Backup / Restore", "Save and restore data")
         tui.option("3", "󰀄", "Profiles", "Manage configuration profiles")
+        tui.option("4", "󰩈", "Connections & Health", "Manage Deezer and Spotify access")
         tui.section("󰒓", "NAVIGATION")
         tui.option("b", "󰌍", "Back", "Return to the main menu")
 
@@ -183,6 +229,8 @@ def config_sub_menu():
             backup_menu()
         elif choice == '3' or choice.lower() == 'profiles':
             profile_menu()
+        elif choice == '4' or choice.lower() in {'connections', 'health', 'doctor'}:
+            connections_menu()
         elif choice.lower() == 'b':
             return
         elif choice == '':
@@ -204,19 +252,17 @@ def monitor_menu():
     clear_screen()
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 18}MONITOR ARTIST{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("M O N I T O R  A R T I S T", "Add artists to your release watchlist", "󰀻")
+        tui.section("󰈙", "INPUT")
+        tui.option("1", "󰀻", "Artist Name", "Search and add artist")
+        tui.option("2", "󰣀", "Artist ID", "Add using a Deezer artist ID")
+        tui.option("3", "󰌷", "Artist URL", "Spotify or Deezer link")
+        tui.option("4", "󰝚", "Playlist", "Import artists from a playlist")
+        tui.option("5", "󰈔", "File", "Import artists from a file")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to Monitor")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}By Artist Name{COLOR_RESET}           {COLOR_DIM}Search and add artist{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}By Artist ID{COLOR_RESET}             {COLOR_DIM}Add using artist ID{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}3.{COLOR_RESET} {COLOR_BOLD}By URL{COLOR_RESET}                  {COLOR_DIM}Spotify or Deezer link{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}4.{COLOR_RESET} {COLOR_BOLD}From Playlist{COLOR_RESET}            {COLOR_DIM}Import from playlist{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}5.{COLOR_RESET} {COLOR_BOLD}From File{COLOR_RESET}               {COLOR_DIM}Import from file{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} How would you like to monitor? {COLOR_RESET}").strip()
+        choice = tui.prompt("Monitor artist")
 
         if choice == '1' or choice.lower() == 'name' or choice.lower() == 'artist name':
             print()
@@ -301,16 +347,14 @@ def playlist_menu():
 
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 15}PLAYLIST DOWNLOAD{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("P L A Y L I S T  D O W N L O A D", "Download albums collected in a playlist", "󰝚")
+        tui.section("󰇚", "MODE")
+        tui.option("1", "󰐕", "Download All", "Download every album in the playlist")
+        tui.option("2", "󰆴", "Skip Existing", "Use collection matching")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to Download")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}Download all albums{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Download excluding existing{COLOR_RESET}  {COLOR_DIM}(use collection matcher){COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} Playlist download mode {COLOR_RESET}").strip()
+        choice = tui.prompt("Playlist mode")
 
         if choice == '1':
             print()
@@ -343,17 +387,15 @@ def file_menu():
 
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 20}FILE IMPORT{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("F I L E  I M P O R T", "Queue IDs and artist names from a text file", "󰈔")
+        tui.section("󰈙", "CONTENT")
+        tui.option("1", "󰀻", "Artist File", "Artists or artist IDs")
+        tui.option("2", "󰈙", "Album File", "Album IDs or Artist - Album")
+        tui.option("3", "󰎆", "Track File", "Track IDs")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to Download")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}Artist file{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Album file{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}3.{COLOR_RESET} {COLOR_BOLD}Track file{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} File type? {COLOR_RESET}").strip()
+        choice = tui.prompt("File type")
 
         if choice == '1':
             print()
@@ -393,17 +435,15 @@ def id_menu():
 
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 22}ID DOWNLOAD{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("I D  D O W N L O A D", "Download directly from a Deezer identifier", "󰣀")
+        tui.section("󰈙", "ENTITY")
+        tui.option("1", "󰀻", "Artist ID", "Download artist releases")
+        tui.option("2", "󰈙", "Album ID", "Download one album")
+        tui.option("3", "󰎆", "Track ID", "Download one track")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to Download")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}Artist ID{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Album ID{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}3.{COLOR_RESET} {COLOR_BOLD}Track ID{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} Select ID type {COLOR_RESET}").strip()
+        choice = tui.prompt("ID type")
 
         dl = download.Download()
 
@@ -451,7 +491,7 @@ def download_menu():
 
     while True:
         clear_screen()
-        tui.header("  D O W N L O A D", "Choose a source for your music")
+        tui.header("D O W N L O A D", "Choose a source for your music", "")
         tui.section("󰇚", "DIRECT")
         tui.option("1", "󰈙", "Artist - Album", "e.g. Slayer - Hell Awaits")
         tui.option("2", "󰀻", "Artist", "Download all releases")
@@ -474,11 +514,14 @@ def download_menu():
             id_menu()
         elif choice == '4' or choice.lower() == 'url':
             dl = download.Download()
-            print(f"\n{COLOR_CYAN}Enter a Spotify or Deezer URL:{COLOR_RESET}")
-            print(f"{COLOR_DIM}(track, album, playlist, or artist){COLOR_RESET}")
-            print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-            print()
-            url = input(f"{COLOR_BRIGHT_BLUE}>{COLOR_RESET} ").strip()
+            clear_screen()
+            url = tui.input_screen(
+                "U R L  D O W N L O A D",
+                "Resolve a Deezer or Spotify track, album, artist, or playlist",
+                "URL",
+                "b back  •  paste a Deezer or Spotify link",
+                "󰌷",
+            )
             if url.lower() == 'b':
                 continue
             if url:
@@ -512,16 +555,13 @@ def download_artist_album_menu():
     COLOR_RED = "\033[31m"
 
     clear_screen()
-    print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-    print(f"{COLOR_BRIGHT_CYAN}{' ' * 15}ARTIST - ALBUM{COLOR_RESET}")
-    print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
-
-    print(f"{COLOR_CYAN}Enter Artist - Album (e.g., 'Misfits - Collection'){COLOR_RESET}")
-    print(f"{COLOR_DIM}or just 'Artist' to search for albums{COLOR_RESET}")
-    print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-    print()
-
-    query = input(f"{COLOR_BRIGHT_BLUE}>{COLOR_RESET} ").strip()
+    query = tui.input_screen(
+        "A R T I S T  •  A L B U M",
+        "Find a precise release or browse an artist's catalogue",
+        "Artist - Album",
+        "b back  •  enter an artist to browse albums",
+        "󰈙",
+    )
 
     if query.lower() == 'b':
         return
@@ -590,16 +630,13 @@ def download_artist_menu():
     COLOR_RED = "\033[31m"
 
     clear_screen()
-    print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-    print(f"{COLOR_BRIGHT_CYAN}{' ' * 18}DOWNLOAD ARTIST{COLOR_RESET}")
-    print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
-
-    print(f"{COLOR_CYAN}Enter artist name{COLOR_RESET}")
-    print(f"{COLOR_DIM}or 'Artist - Album' to narrow down search{COLOR_RESET}")
-    print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-    print()
-
-    query = input(f"{COLOR_BRIGHT_BLUE}>{COLOR_RESET} ").strip()
+    query = tui.input_screen(
+        "A R T I S T  D O W N L O A D",
+        "Download every release from one artist",
+        "Artist",
+        "b back  •  Artist - Album narrows the search",
+        "󰀻",
+    )
 
     if query.lower() == 'b':
         return
@@ -655,7 +692,7 @@ def download_artist_menu():
     print(f"\n{COLOR_CYAN}Downloading all releases by {artist_name}...{COLOR_RESET}\n")
 
     dl = download.Download()
-    dl.artist_ids([artist_id])
+    dl.download(None, [artist_id], None, None, None, None, None, None)
 
     print(f"\n{COLOR_GREEN}Download complete!{COLOR_RESET}")
     input(f"{COLOR_DIM}Press Enter to continue...{COLOR_RESET}")
@@ -675,17 +712,15 @@ def refresh_menu():
     clear_screen()
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 17}REFRESH OPTIONS{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("R E F R E S H", "Check monitored artists and playlists for releases", "󰑐")
+        tui.section("󰐕", "TARGET")
+        tui.option("1", "󰀻", "All Monitored", "Check every monitored artist")
+        tui.option("2", "󰀻", "Specific Artists", "Choose one or more artists")
+        tui.option("3", "󰝚", "Playlists", "Check monitored playlists")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to Monitor")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}All Monitored Artists{COLOR_RESET}     {COLOR_DIM}Check all for new releases{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Specific Artist(s){COLOR_RESET}        {COLOR_DIM}Check specific artists{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}3.{COLOR_RESET} {COLOR_BOLD}Playlist(s){COLOR_RESET}               {COLOR_DIM}Check playlists{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} What would you like to refresh? {COLOR_RESET}").strip()
+        choice = tui.prompt("Refresh")
 
         skip_download = False
 
@@ -740,9 +775,7 @@ def show_monitored_menu():
     clear_screen()
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 17}MONITORED ARTISTS{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("M O N I T O R E D  A R T I S T S", "Browse and manage your watchlist", "󰀻")
 
         # Get all monitored artists
         show = Show()
@@ -773,11 +806,10 @@ def show_monitored_menu():
 
         while True:
             clear_screen()
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{' ' * 17}MONITORED ARTISTS{COLOR_RESET}")
+            tui.header("M O N I T O R E D  A R T I S T S", "Browse and manage your watchlist", "󰀻")
             if total_pages > 1:
                 print(f"{COLOR_DIM}Page {page + 1} of {total_pages}{COLOR_RESET}")
-            print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+            print()
 
             start_idx = page * page_size
             end_idx = min(start_idx + page_size, len(items))
@@ -874,20 +906,17 @@ def artist_menu(show, artist_item):
 
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_CYAN}Artist:{COLOR_RESET} {COLOR_BOLD}{artist_name}{COLOR_RESET}")
-        print(f"{COLOR_CYAN}Artist ID:{COLOR_RESET} {artist_id}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("M O N I T O R E D  A R T I S T", artist_name, "󰀻")
+        tui.status([f"Artist ID: {artist_id}"])
+        tui.section("󰇚", "ACTIONS")
+        tui.option("1", "󰍹", "Discography", "Show all releases")
+        tui.option("2", "󰑐", "Check Releases", "Refresh for new music")
+        tui.option("3", "󰇚", "Download All", "Download all releases")
+        tui.option("4", "󰟓", "Edit Settings", "Configure this artist")
+        tui.option("5", "󰆴", "Unmonitor", "Stop tracking")
+        tui.option("b", "󰌍", "Back", "Return to monitored artists")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}View Discography{COLOR_RESET}            {COLOR_DIM}Show all releases{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Check New Releases{COLOR_RESET}         {COLOR_DIM}Refresh for new{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}3.{COLOR_RESET} {COLOR_BOLD}Download All{COLOR_RESET}                {COLOR_DIM}Download all releases{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}4.{COLOR_RESET} {COLOR_BOLD}Edit Settings{COLOR_RESET}               {COLOR_DIM}Configure this artist{COLOR_RESET}")
-        print(f"{COLOR_RED}5.{COLOR_RESET} {COLOR_BOLD}Unmonitor{COLOR_RESET}                    {COLOR_DIM}Stop tracking{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} What would you like to do? {COLOR_RESET}").strip()
+        choice = tui.prompt("Action")
 
         if choice == '1' or choice.lower() == 'view' or choice.lower() == 'discography':
             view_discography(artist_name, artist_id)
@@ -915,6 +944,8 @@ def view_discography(artist_name, artist_id):
     COLOR_RESET = "\033[0m"
     COLOR_CYAN = "\033[36m"
     COLOR_BRIGHT_CYAN = "\033[96m"
+    COLOR_YELLOW = "\033[33m"
+    COLOR_DIM = "\033[2m"
 
     print(f"\n{COLOR_CYAN}Loading discography for {artist_name}...{COLOR_RESET}")
 
@@ -934,6 +965,7 @@ def refresh_artist(artist_name, artist_id):
     COLOR_RESET = "\033[0m"
     COLOR_CYAN = "\033[36m"
     COLOR_GREEN = "\033[32m"
+    COLOR_DIM = "\033[2m"
     COLOR_DIM = "\033[2m"
 
     print(f"\n{COLOR_CYAN}Checking {artist_name} for new releases...{COLOR_RESET}")
@@ -983,19 +1015,16 @@ def unmonitored_artist(show, all_items):
 
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 15}UNMONITOR ARTIST{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("U N M O N I T O R", "Select an artist to remove from the watchlist", "󰆴")
+        tui.section("󰀻", "ARTISTS")
 
         for idx, item in enumerate(items, start=1):
             artist_name = item.get('artist_name', 'Unknown')
-            print(f"{COLOR_BRIGHT_BLUE}{idx}.{COLOR_RESET} {COLOR_BOLD}{artist_name}{COLOR_RESET}")
+            tui.option(str(idx), "󰀻", artist_name)
 
-        print()
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
+        tui.option("b", "󰌍", "Back", "Return to monitored artists")
 
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} Select artist to unmonitor {COLOR_RESET}").strip()
+        choice = tui.prompt("Artist to unmonitor")
 
         if choice.lower() == 'b':
             return
@@ -1033,6 +1062,7 @@ def unmonitored_artist_by_id(artist_id):
     COLOR_RESET = "\033[0m"
     COLOR_CYAN = "\033[36m"
     COLOR_GREEN = "\033[32m"
+    COLOR_DIM = "\033[2m"
 
     monitor = Monitor()
     monitor.set_options(remove=True, dl_all=False, search=False)
@@ -1072,20 +1102,18 @@ def download_monitored():
 
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 18}DOWNLOAD MONITORED{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("M O N I T O R E D  D O W N L O A D", "Choose a monitored artist or queue them all", "󰀻")
+        tui.section("󰀻", "ARTISTS")
 
         for idx, item in enumerate(items, start=1):
             artist_name = item.get('artist_name', 'Unknown')
-            print(f"{COLOR_BRIGHT_BLUE}{idx}.{COLOR_RESET} {COLOR_BOLD}{artist_name}{COLOR_RESET}")
+            tui.option(str(idx), "󰀻", artist_name)
 
-        print()
-        print(f"{COLOR_DIM}  {COLOR_CYAN}a.{COLOR_RESET} {COLOR_BOLD}Download All{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
+        tui.section("󰇚", "ACTIONS")
+        tui.option("a", "󰇚", "Download All", "Queue every monitored artist")
+        tui.option("b", "󰌍", "Back", "Return to Download")
 
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} Select artist or option {COLOR_RESET}").strip()
+        choice = tui.prompt("Artist or action")
 
         if choice.lower() == 'a' or choice.lower() == 'download all':
             dl = dl_mod.Download()
@@ -1108,18 +1136,15 @@ def download_monitored():
                 # Show artist options menu
                 while True:
                     clear_screen()
-                    print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-                    print(f"{COLOR_CYAN}Artist:{COLOR_RESET} {COLOR_BOLD}{artist_name}{COLOR_RESET}")
-                    print(f"{COLOR_CYAN}Artist ID:{COLOR_RESET} {artist_id}")
-                    print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+                    tui.header("M O N I T O R E D  A R T I S T", artist_name, "󰀻")
+                    tui.status([f"Artist ID: {artist_id}"])
+                    tui.section("󰇚", "ACTIONS")
+                    tui.option("1", "󰍹", "Discography", "Show all releases")
+                    tui.option("2", "󰑐", "Check Releases", "Refresh for new music")
+                    tui.option("3", "󰇚", "Download All", "Download all releases")
+                    tui.option("b", "󰌍", "Back", "Return to artists")
 
-                    print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}View Discography{COLOR_RESET}            {COLOR_DIM}Show all releases{COLOR_RESET}")
-                    print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Check New Releases{COLOR_RESET}         {COLOR_DIM}Refresh for new{COLOR_RESET}")
-                    print(f"{COLOR_BRIGHT_BLUE}3.{COLOR_RESET} {COLOR_BOLD}Download All{COLOR_RESET}                {COLOR_DIM}Download all releases{COLOR_RESET}")
-                    print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-                    print()
-
-                    action_choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} What would you like to do? {COLOR_RESET}").strip()
+                    action_choice = tui.prompt("Action")
 
                     if action_choice == '1' or action_choice.lower() == 'view' or action_choice.lower() == 'discography':
                         view_discography(artist_name, artist_id)
@@ -1187,9 +1212,7 @@ def show_monitoring_styled(show_instance, artist: bool = True, query: str = None
         else:
             items = db_result
 
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 15}MONITORED ARTISTS{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("M O N I T O R E D  A R T I S T S", "Current artist monitoring settings", "󰀻")
 
         if len(items) == 0:
             print(f"{COLOR_YELLOW}No artists found{COLOR_RESET}")
@@ -1229,9 +1252,7 @@ def show_monitoring_styled(show_instance, artist: bool = True, query: str = None
         else:
             items = db_result
 
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 13}MONITORED PLAYLISTS{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("M O N I T O R E D  P L A Y L I S T S", "Current playlist monitoring settings", "󰝚")
 
         if len(items) == 0:
             print(f"{COLOR_YELLOW}No playlists found{COLOR_RESET}")
@@ -1267,16 +1288,14 @@ def show_releases_menu():
     clear_screen()
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 16}SHOW RELEASES{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("N E W  R E L E A S E S", "Browse recent and upcoming monitored releases", "󰐕")
+        tui.section("󰐕", "RELEASES")
+        tui.option("1", "󰐕", "Recent", "View newly released music")
+        tui.option("2", "󰏖", "Future", "View upcoming releases")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to the main menu")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}Recent releases{COLOR_RESET}            {COLOR_DIM}View new releases{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Future releases{COLOR_RESET}            {COLOR_DIM}Upcoming releases{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} What releases would you like to show? {COLOR_RESET}").strip()
+        choice = tui.prompt("Releases")
 
         if choice == '1' or choice.lower() == 'recent':
             print()
@@ -1312,16 +1331,14 @@ def config_menu():
     clear_screen()
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 14}ARTIST CONFIGURATION{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("A R T I S T  S E T T I N G S", "Configure per-artist behaviour and defaults", "󰟓")
+        tui.section("󰟓", "OPTIONS")
+        tui.option("1", "󰀻", "Per-Artist Settings", "Configure one monitored artist")
+        tui.option("2", "󰍹", "View Current Config", "Show active global settings")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to Configuration")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}Per-Artist Settings{COLOR_RESET}       {COLOR_DIM}Configure specific artist{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}View Current Config{COLOR_RESET}       {COLOR_DIM}Show all settings{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} What would you like to configure? {COLOR_RESET}").strip()
+        choice = tui.prompt("Settings")
 
         if choice == '1' or choice.lower() == 'per-artist' or choice.lower() == 'settings':
             print()
@@ -1340,6 +1357,50 @@ def config_menu():
             continue
 
 
+def connections_menu():
+    from getpass import getpass
+
+    while True:
+        clear_screen()
+        checks = readiness_checks()
+        tui.header("C O N N E C T I O N S  •  H E A L T H", "deemon-owned credentials and integration readiness", "󰩈")
+        tui.section("󰒋", "READINESS")
+        tui.option("", "󰌾", "Deezer ARL", "ready" if checks['arl_configured'] else "not configured")
+        tui.option("", "󰖟", "Spotify", "ready" if checks['spotify_ready'] else checks['spotify_message'])
+        tui.option("", "󰈙", "Download Path", "ready" if checks['download_path_configured'] else "not configured")
+        tui.section("󰟓", "MANAGE")
+        tui.option("1", "󰌿", "Set Deezer ARL", "Saved to deemon settings")
+        tui.option("2", "󰖟", "Set Spotify Client ID", "Saved to deemon settings")
+        tui.option("3", "󰖟", "Set Spotify Secret", "Hidden input; saved to deemon settings")
+        tui.option("4", "󰋖", "Run Doctor", "Show detailed readiness checks")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to Configuration")
+        choice = tui.prompt("Connections")
+        if choice == '1':
+            value = getpass("Deezer ARL (input hidden): ").strip()
+            if value:
+                _config_path_value('deemix.arl', value)
+                print("Saved Deezer ARL to deemon settings.")
+                input("Press Enter to continue...")
+        elif choice == '2':
+            value = input("Spotify Client ID: ").strip()
+            if value:
+                _config_path_value('spotify.client_id', value)
+                print("Saved Spotify Client ID to deemon settings.")
+                input("Press Enter to continue...")
+        elif choice == '3':
+            value = getpass("Spotify Client Secret (input hidden): ").strip()
+            if value:
+                _config_path_value('spotify.client_secret', value)
+                print("Saved Spotify Client Secret to deemon settings.")
+                input("Press Enter to continue...")
+        elif choice == '4':
+            print_readiness_checks(readiness_checks())
+            input("Press Enter to continue...")
+        elif choice.lower() == 'b':
+            return
+
+
 def backup_menu():
     """Backup menu"""
     COLOR_RESET = "\033[0m"
@@ -1355,16 +1416,14 @@ def backup_menu():
     clear_screen()
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 18}BACKUP / RESTORE{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("B A C K U P  •  R E S T O R E", "Protect and recover your deemon data", "󰁯")
+        tui.section("󰇚", "DATA")
+        tui.option("1", "󰆓", "Create Backup", "Save configuration and database")
+        tui.option("2", "󰑐", "Restore Backup", "Replace data from a backup")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to Configuration")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}Create Backup{COLOR_RESET}               {COLOR_DIM}Backup your data{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Restore From Backup{COLOR_RESET}        {COLOR_DIM}Restore from file{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} What would you like to do? {COLOR_RESET}").strip()
+        choice = tui.prompt("Backup")
 
         if choice == '1' or choice.lower() == 'create' or choice.lower() == 'backup':
             include = input(f"{COLOR_YELLOW}Include log files? [y/N]:{COLOR_RESET} ").strip().lower()
@@ -1403,19 +1462,17 @@ def profile_menu():
     clear_screen()
     while True:
         clear_screen()
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{' ' * 20}PROFILES{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        tui.header("P R O F I L E S", "Create and manage configuration profiles", "󰀄")
+        tui.section("󰀄", "PROFILES")
+        tui.option("1", "󰍹", "Show Profiles", "List all profiles")
+        tui.option("2", "󰐕", "Add Profile", "Create a profile")
+        tui.option("3", "󰏫", "Edit Profile", "Modify a profile")
+        tui.option("4", "󰆴", "Delete Profile", "Remove a profile")
+        tui.option("5", "󰃢", "Clear Settings", "Reset profile settings")
+        tui.section("󰒓", "NAVIGATION")
+        tui.option("b", "󰌍", "Back", "Return to Configuration")
 
-        print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}Show Profiles{COLOR_RESET}               {COLOR_DIM}List all profiles{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Add New Profile{COLOR_RESET}            {COLOR_DIM}Create a profile{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}3.{COLOR_RESET} {COLOR_BOLD}Edit Profile{COLOR_RESET}              {COLOR_DIM}Modify a profile{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}4.{COLOR_RESET} {COLOR_BOLD}Delete Profile{COLOR_RESET}            {COLOR_DIM}Remove a profile{COLOR_RESET}")
-        print(f"{COLOR_BRIGHT_BLUE}5.{COLOR_RESET} {COLOR_BOLD}Clear Profile Config{COLOR_RESET}       {COLOR_DIM}Reset profile settings{COLOR_RESET}")
-        print(f"{COLOR_DIM}  {COLOR_CYAN}b.{COLOR_RESET} {COLOR_BOLD}Back{COLOR_RESET}")
-        print()
-
-        choice = input(f"{COLOR_BRIGHT_BLUE}::{COLOR_RESET} What would you like to do? {COLOR_RESET}").strip()
+        choice = tui.prompt("Profiles")
 
         if choice == '1' or choice.lower() == 'show' or choice.lower() == 'profiles':
             print()
@@ -1737,24 +1794,54 @@ def queue_retry_command(failed, dry_run, yes):
     downloader.download_queue()
 
 
-@run.command(name='doctor')
-@click.option('--json', 'as_json', is_flag=True, help='Output readiness checks as JSON')
-def doctor_command(as_json):
+def readiness_checks(verify_spotify=False):
     assert config is not None
     config_path = startup.get_config()
     appdata = startup.get_appdata_dir()
-    checks = {
+    spotify_credentials = bool(config.spotify_client_id() and config.spotify_client_secret())
+    spotify_package = importlib.util.find_spec('spotipy') is not None
+    spotify_ready = False
+    if not spotify_credentials:
+        spotify_message = 'credentials missing'
+    elif not spotify_package:
+        spotify_message = 'spotipy package missing'
+    elif verify_spotify:
+        from deemon.plugins.spotify import Spotify
+        spotify_ready = Spotify().setup().enabled
+        spotify_message = 'ready' if spotify_ready else 'API access unavailable'
+    else:
+        spotify_message = 'configured; run Doctor to verify API access'
+    return {
         'config_file': config_path.exists(),
         'appdata_dir': appdata.exists(),
         'arl_configured': bool(config.arl()),
         'download_path_configured': bool(config.download_path()),
         'deemix_path_configured': bool(config.deemix_path()),
+        'spotify_credentials_configured': spotify_credentials,
+        'spotify_package_available': spotify_package,
+        'spotify_ready': spotify_ready,
+        'spotify_message': spotify_message,
+        'queued_items': len(_read_queue_file('queue.csv')[1]),
+        'failed_items': len(_read_queue_file('failed.csv')[1]),
     }
+
+
+def print_readiness_checks(checks):
+    for name, value in checks.items():
+        if isinstance(value, bool):
+            print(f"{'OK' if value else 'MISSING'}  {name}")
+        elif name not in {'spotify_message'}:
+            print(f"INFO  {name}: {value}")
+
+
+@run.command(name='doctor')
+@click.option('--json', 'as_json', is_flag=True, help='Output readiness checks as JSON')
+def doctor_command(as_json):
+    checks = readiness_checks(verify_spotify=True)
     if as_json:
         click.echo(json.dumps(checks, ensure_ascii=False))
         return
-    for name, passed in checks.items():
-        click.echo(f"{'OK' if passed else 'MISSING'}  {name}")
+    print_readiness_checks(checks)
 
 
 def _config_path_value(path, raw_value):
@@ -1790,7 +1877,7 @@ def _config_path_value(path, raw_value):
 def _redact_settings(value: Any, key: str = '') -> Any:
     if isinstance(value, dict):
         return {item_key: _redact_settings(item_value, item_key) for item_key, item_value in value.items()}
-    if any(secret in key.lower() for secret in ('arl', 'password', 'token')):
+    if any(secret in key.lower() for secret in ('arl', 'password', 'token', 'secret', 'client_id')):
         return '***' if value else ''
     return value
 
@@ -2203,9 +2290,8 @@ def render_cheatsheet():
     COLOR_DIM = "\033[2m"
 
     clear_screen()
-    print(f"{COLOR_BRIGHT_CYAN}{'=' * 70}{COLOR_RESET}")
-    print(f"{COLOR_BRIGHT_CYAN}{' ' * 20}DEEMON CHEATSHEET{COLOR_RESET}")
-    print(f"{COLOR_BRIGHT_CYAN}{'=' * 70}{COLOR_RESET}\n")
+    tui.header("C H E A T S H E E T", "Commands, shortcuts, and automation-friendly examples", "󰋖")
+    print()
 
     print(f"{COLOR_BRIGHT_BLUE}▸ {COLOR_BOLD}DOWNLOADING{COLOR_RESET}")
     print(f"  {COLOR_YELLOW}Artist - Album:{COLOR_RESET}")
@@ -2287,7 +2373,8 @@ def rollback_command(num, view):
 @click.option('--url', type=str, help='Deezer or Spotify album URL used to identify the artist')
 @click.option('--include-singles', is_flag=True, help='Include singles in discography')
 @click.option('--print-only', is_flag=True, help='Print album URLs instead of queueing downloads')
-def discography_command(band, album, url, include_singles, print_only):
+@click.option('--preview', is_flag=True, help='Show the releases that would be downloaded without starting downloads')
+def discography_command(band, album, url, include_singles, print_only, preview):
     if url:
         from deemon.core.resolver import InputResolver, ResolutionStatus
 
@@ -2343,7 +2430,8 @@ def discography_command(band, album, url, include_singles, print_only):
     if not artist_id:
         logger.error("Could not resolve artist from album search")
         return
-    logger.info(f"Found artist: {artist_name} (ID: {artist_id})")
+    if not preview:
+        logger.info(f"Found artist: {artist_name} (ID: {artist_id})")
     albums_url = f"https://api.deezer.com/artist/{artist_id}/albums"
     all_albums = []
     url = albums_url
@@ -2384,6 +2472,21 @@ def discography_command(band, album, url, include_singles, print_only):
         if album_id:
             album_ids.append(int(album_id))
             deezer_urls.append(f"https://www.deezer.com/album/{album_id}")
+    if preview:
+        print("DEEMON DISCOGRAPHY PREVIEW")
+        print("=" * 72)
+        print(f"Artist: {artist_name}")
+        print(f"Seed release: {album}")
+        print(f"Releases to download: {len(album_ids)}")
+        print()
+        for index, release in enumerate(unique_albums, start=1):
+            title = release.get('title') or 'Unknown title'
+            release_type = (release.get('record_type') or 'release').upper()
+            year = str(release.get('release_date') or '')[:4] or 'Unknown year'
+            print(f"{index:>2}. {artist_name} - {title}  [{release_type} · {year}]")
+        print()
+        print("Preview only. No downloads were started.")
+        return
     if print_only:
         for url in deezer_urls:
             print(url)

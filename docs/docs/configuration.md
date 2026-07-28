@@ -27,11 +27,11 @@ automatically generate a default config if an existing configuration file is
 not present. For example: to generate this configuration file, run 
 `deemon refresh`.
 
-- **Linux**: /home/user/.config/deemon
+- **Linux**: `~/.config/deemon/config.json`
 
-- **macOS**: /User/user/Library/Application Support/deemon
+- **macOS**: `~/Library/Application Support/deemon/config.json`
 
-- **Windows**: %appdata%\deemon
+- **Windows**: `%APPDATA%\deemon\config.json`
 
 ### Default Configuration (Version 2.19.2)
 ```json

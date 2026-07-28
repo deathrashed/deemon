@@ -6,29 +6,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **deemon** is a Python CLI tool that monitors artists for new releases, sends email notifications, and integrates with deemix to automatically download music from Deezer. It is a fork of the original [digitalec/deemon](https://github.com/digitalec/deemon) project.
 
+Portable utilities live in `scripts/`; optional automation assets live in `integrations/`; sanitized reference configuration lives in `examples/`. Runtime credentials and Deemix settings are user-local and are not stored in this repository.
+
 ## Development Commands
 
 ### Installation
 ```bash
-# Quick install (editable mode, recommended for development)
 ./install.sh
 
-# Install via pip in editable mode
-pip install -e .
-
-# Install from requirements
-pip install -r requirements.txt
+# Use the project-local virtual environment
+./.venv/bin/python -m deemon --help
 ```
 
 ### Running
 ```bash
 # Run directly via Python module
-python3 -m deemon
+./.venv/bin/python -m deemon
 
 # Run with specific command
-python3 -m deemon --init
-python3 -m deemon monitor "Artist Name"
-python3 -m deemon refresh
+./.venv/bin/python -m deemon --init
+./.venv/bin/python -m deemon monitor "Artist Name"
+./.venv/bin/python -m deemon refresh
 
 # If installed globally
 deemon COMMAND
@@ -45,6 +43,7 @@ deemon show releases       # Show recent releases
 deemon rollback -v         # View transaction history
 deemon test -e             # Test email notification
 deemon profile             # Manage configuration profiles
+deemon doctor --json       # Check credentials, queue, and integrations
 ```
 
 ## Architecture

@@ -1,6 +1,6 @@
 {
   "deemon": {
-    "command": "/Users/rd/Scripts/Riley/audio/download/deemon/.venv/bin/python",
-    "args": ["-u", "/Users/rd/Scripts/Riley/audio/download/deemon/deemon_mcp.py"]
+    "command": "<DEEMON_ROOT>/.venv/bin/python",
+    "args": ["-u", "<DEEMON_ROOT>/scripts/deemon-mcp.py"]
   }
 }

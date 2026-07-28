@@ -1,1 +1,0 @@
-/Users/rd/Scripts/Riley/audio/download/deemon/raycast/deemon-discography-url copy.sh

@@ -1,18 +1,20 @@
 # deemon Paths Reference
 
+Set `DEEMON_ROOT` to the absolute path of the cloned repository. Paths below are portable examples, not values to commit into a client configuration.
+
 ## Project
 
 | What | Path |
 |------|------|
-| Project root | `/Users/rd/Scripts/Riley/audio/download/deemon` |
-| Venv Python | `/Users/rd/Scripts/Riley/audio/download/deemon/.venv/bin/python` |
-| Venv deemon CLI | `/Users/rd/Scripts/Riley/audio/download/deemon/.venv/bin/deemon` |
-| MCP server | `/Users/rd/Scripts/Riley/audio/download/deemon/deemon_mcp.py` |
-| Raycast bridge | `/Users/rd/Scripts/Riley/audio/download/deemon/raycast_bridge.py` |
-| Deemix config | `/Users/rd/Scripts/Riley/audio/download/deemon/config/config.json` |
-| Spotify creds | `/Users/rd/Scripts/Riley/audio/download/deemon/config/spotify/config.json` |
-| Dockerfile | `/Users/rd/Scripts/Riley/audio/download/deemon/Dockerfile` |
-| Install script | `/Users/rd/Scripts/Riley/audio/download/deemon/install.sh` |
+| Project root | `$DEEMON_ROOT` |
+| Venv Python | `$DEEMON_ROOT/.venv/bin/python` |
+| Venv deemon CLI | `$DEEMON_ROOT/.venv/bin/deemon` |
+| MCP server | `$DEEMON_ROOT/scripts/deemon-mcp.py` |
+| Raycast bridge | `$DEEMON_ROOT/scripts/raycast-bridge.py` |
+| Deemix config | `~/.config/deemix/config.json` or `~/Library/Application Support/deemix/config.json` |
+| Spotify credentials | deemon application config via `deemon settings` |
+| Dockerfile | `$DEEMON_ROOT/Dockerfile` |
+| Install script | `$DEEMON_ROOT/install.sh` |
 
 ## Runtime (macOS)
 
@@ -27,8 +29,8 @@
 
 | What | Path |
 |------|------|
-| Skill root | `/Users/rd/Scripts/Riley/audio/download/deemon/agents/skill/deemon/` |
-| Symlink target | `/Users/rd/.agents/skills/deemon` → points to skill root |
+| Skill root | `$DEEMON_ROOT/agents/skill/deemon/` |
+| Symlink target | user-specific agent skill location → points to skill root |
 | SKILL.md | `agents/skill/deemon/SKILL.md` |
 | References | `agents/skill/deemon/references/` |
 | Scripts | `agents/skill/deemon/scripts/` |
@@ -37,10 +39,10 @@
 
 | What | Path |
 |------|------|
-| MCP config | `/Users/rd/Scripts/Riley/audio/download/deemon/agents/mcp/.mcp.json` |
-| MCP README | `/Users/rd/Scripts/Riley/audio/download/deemon/agents/mcp/README.md` |
-| Global MCP entry | `/Users/rd/.config/opencode/opencode.json` (key: `deemon`) |
-| MCP server script | `/Users/rd/Scripts/Riley/audio/download/deemon/deemon_mcp.py` |
+| MCP config | `$DEEMON_ROOT/agents/mcp/.mcp.json` |
+| MCP README | `$DEEMON_ROOT/agents/mcp/README.md` |
+| Global MCP entry | your MCP client's configuration file (key: `deemon`) |
+| MCP server script | `$DEEMON_ROOT/scripts/deemon-mcp.py` |
 
 ## Key Source Files
 

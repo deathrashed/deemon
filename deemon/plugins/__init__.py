@@ -1,4 +1,3 @@
-# /Users/rd/deemon/deemon/plugins/__init__.py
 from pathlib import Path
 import importlib.util
 import logging

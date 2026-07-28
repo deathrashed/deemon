@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEEMON_DIR="/Users/rd/Scripts/Riley/audio/download/deemon"
+DEEMON_DIR="${DEEMON_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)}"
 VENV_PYTHON="$DEEMON_DIR/.venv/bin/python"
 DEEMON="$DEEMON_DIR/.venv/bin/deemon"
 
@@ -83,10 +83,12 @@ fi
 # 4. Deemix config
 echo ""
 echo "--- Deemix ---"
-if [ -f "$DEEMON_DIR/config/config.json" ]; then
-  echo "  config: OK"
+if [ -f "$HOME/.config/deemix/config.json" ]; then
+  echo "  config: $HOME/.config/deemix/config.json"
+elif [ -f "$HOME/Library/Application Support/deemix/config.json" ]; then
+  echo "  config: $HOME/Library/Application Support/deemix/config.json"
 else
-  echo "  config: MISSING"
+  echo "  config: NOT FOUND"
 fi
 
 # 5. Filesystem

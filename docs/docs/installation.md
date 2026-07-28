@@ -17,33 +17,28 @@ nav_order: 2
 
 ## Step 1 - Required Dependencies
 
-In order to install and run deemon, you'll need to have at least Python 3.6 or higher installed along with the `pip` package manager.
+In order to install and run deemon, you'll need Python 3.8 or higher.
 
 Please refer to [python.org](https://www.python.org/downloads/) for more information.
 
-### Step 2 - Installing deemon
-Once you have at least Python 3.6 installed, go ahead and install deemon using 
-`pip`. On some distributions, the `pip` command is for Python2. In this case, 
-substitute `pip` for `pip3` in the commands below.
+### Step 2 - Installing from source
 
-**Windows users**: These commands should be typed in a Command Prompt, Windows Terminal or Powershell window.
+Clone the repository and run the portable installer. It creates a `.venv` in the checkout and installs deemon in editable mode.
 
 ```bash
-# Latest stable release
-$ pip install deemon
-
-# Latest release (including pre-release/beta)
-$ pip install --pre deemon
+git clone https://github.com/deathrashed/deemon.git
+cd deemon
+./install.sh
 ```
 
-At this point, pip will download deemon and any other modules required to allow 
-deemon to function. Once it's complete, use the following command to make sure 
-deemon is installed:
+Use the local command directly:
 
 ```bash
-$ deemon -V
-deemon 2.19.2
+./.venv/bin/deemon --init
+./.venv/bin/deemon --help
 ```
+
+For a global command, install the checkout with `pipx install --editable .`.
 
 ## Configuration & First Use
 

@@ -1,30 +1,36 @@
 <p align="center">
-  <img src="deemon/assets/images/deemon-cyan.png" alt="deemon" width="600">
+  <img src="deemon/assets/images/graf-banner-deemon.png" alt="deemon" width="">
 </p>
-
-
-
 <p align="center">
   <a href="https://deemix.org/">
-    <img src="https://img.shields.io/static/v1?style=for-the-badge&logo=download&logoColor=white&label=Deemix&message=Downloader&color=8F05FF" alt="Deemix Downloader">
+    <img src="https://custom-icon-badges.demolab.com/badge/Deemix-Downloader-62ebe1?style=for-the-badge&logoColor=white&logo=deemix-cyan" alt="Deemix Downloader">
   </a>
   <a href="https://github.com/digitalec/deemon">
-    <img src="https://img.shields.io/badge/Forked-digitalec/deemon-red?style=for-the-badge&logo=github&logoColor=white" alt="Forked">
+    <img src="https://custom-icon-badges.demolab.com/badge/Forked-Digitalec-62ebe1?style=for-the-badge&logoColor=white&logo=deemix-cyan" alt="Forked">
   </a>
-  <img src="https://img.shields.io/github/last-commit/deathrashed/deemon?style=for-the-badge&logo=git&logoColor=white" alt="GitHub last commit">
 </p>
 
-## Quick Install
+
+## ![](https://api.iconify.design/glyphs-poly/music.svg) Quick Install
 
 ```bash
-git clone https://github.com/deathrashed/deemon.git ~/deemon && cd ~/deemon && ./install.sh
+git clone https://github.com/deathrashed/deemon.git
+cd deemon
+./install.sh
 ```
 
-That's it! `deemon` is now installed globally and ready to use. Run `deemon --init` to get started.
+The installer creates a project-local virtual environment and installs deemon in editable mode. Start with:
+
+```bash
+./.venv/bin/deemon --init
+./.venv/bin/deemon
+```
+
+Use `pipx install --editable .` if you want a global `deemon` command. Run `deemon doctor --json` to inspect local setup without exposing credentials.
 
 ---
 
-## About
+## ![](https://api.iconify.design/glyphs-poly/music.svg) About
 
 deemon is a command line tool written in Python that monitors artists for new releases, provides email notifications, and integrates with the deemix library to automatically download new releases from Deezer.
 
@@ -43,10 +49,11 @@ deemon is a command line tool written in Python that monitors artists for new re
 - **Interactive Menu**: User-friendly TUI with styled menus and pagination
 - **Keyboard Maestro Ready**: Wrapper script included for automation workflows
 
-## Information & Instructions
+## ![](https://api.iconify.design/glyphs-poly/music.svg) Information & Instructions
 
 <details>
-<summary>📦 Installation</summary>
+<summary>☣ Installation</summary>
+
 
 ### Prerequisites
 
@@ -57,18 +64,21 @@ deemon is a command line tool written in Python that monitors artists for new re
 ### Quick Install (Recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/deathrashed/deemon.git ~/deemon
-cd ~/deemon
-
-# Run the install script
+git clone https://github.com/deathrashed/deemon.git
+cd deemon
 ./install.sh
 ```
 
 The install script will:
 - Install deemon in **editable mode** (changes take effect immediately)
-- Set up the `deemon` command globally
-- Configure proper paths for Keyboard Maestro/automation tools
+- Create a project-local `.venv`
+- Verify the CLI can start
+
+To expose `deemon` globally, use [pipx](https://pipx.pypa.io/):
+
+```bash
+pipx install --editable .
+```
 
 ### Using pip
 
@@ -79,10 +89,11 @@ $ pip install deemon
 ### From source
 
 ```bash
-$ git clone https://github.com/deathrashed/deemon.git ~/deemon
-$ cd ~/deemon
-$ pip install -r requirements.txt
-$ python3 -m deemon
+git clone https://github.com/deathrashed/deemon.git
+cd deemon
+python3 -m venv .venv
+./.venv/bin/pip install -e .
+./.venv/bin/python -m deemon
 ```
 
 ### Docker
@@ -131,7 +142,8 @@ $ deemon refresh
 </details>
 
 <details>
-<summary>⚙️ Configuration</summary>
+<summary>♪ Configuration</summary>
+
 
 ### Initial Setup
 
@@ -311,7 +323,8 @@ Or edit `config.json` directly:
 </details>
 
 <details>
-<summary>🚀 Commands</summary>
+<summary>⌘ Commands</summary>
+
 
 ### Overview
 
@@ -815,7 +828,8 @@ deemon extra
 </details>
 
 <details>
-<summary>💡 Examples</summary>
+<summary>∞ Examples</summary>
+
 
 ### Basic Workflow
 
@@ -970,7 +984,8 @@ deemon discography -b "Pink Floyd" -a "The Dark Side of the Moon" --print-only
 </details>
 
 <details>
-<summary>🤖 Automation</summary>
+<summary>⁜ Automation</summary>
+
 
 ### Cron (Linux/macOS)
 
@@ -1057,10 +1072,11 @@ deemon -v refresh
 
 ---
 
-## Original Project
+## ![](https://api.iconify.design/glyphs-poly/music.svg) Original Project
 
 <details>
-<summary>🫟 Attribution</summary>
+<summary>✦ Attribution</summary>
+
 
 <p align="center">
   <img src="deemon/assets/images/deemon.png" alt="deemon" width="600">
@@ -1161,17 +1177,17 @@ If you are moving to venv from the Docker container, be sure to update your cron
 You have to manually add artists, playlists, albums, etc.. deemon does not automatically pull artists unless they're being monitored. Refer to the documentation [here](https://digitalec.github.io/deemon/docs/commands/monitor.html).
 </details>
 
-## License
+## ![](https://api.iconify.design/glyphs-poly/music.svg) License
 
 GPL3 - See LICENSE file for details
 
-## Contributing
+## ![](https://api.iconify.design/glyphs-poly/music.svg) Contributing
 
 Contributions are welcome! Please visit:
 - GitHub: https://github.com/deathrashed/deemon
 - Issues: https://github.com/deathrashed/deemon/issues
 
-## Acknowledgments
+## ![](https://api.iconify.design/glyphs-poly/music.svg) Acknowledgments
 
 - [Deemix](https://deemix.org) - Download engine
 - [Deezer API](https://developers.deezer.com/api) - Music data source

@@ -19,6 +19,8 @@ Music monitoring and downloader MCP server — searches Deezer, downloads albums
 
 ## Connection
 
+Replace `<DEEMON_ROOT>` with the absolute path of your clone.
+
 ### opencode
 
 Add to `~/.config/opencode/opencode.json`:
@@ -27,9 +29,9 @@ Add to `~/.config/opencode/opencode.json`:
 "deemon": {
   "type": "local",
   "command": [
-    "/Users/rd/Scripts/Riley/audio/download/deemon/.venv/bin/python",
+    "<DEEMON_ROOT>/.venv/bin/python",
     "-u",
-    "/Users/rd/Scripts/Riley/audio/download/deemon/deemon_mcp.py"
+    "<DEEMON_ROOT>/scripts/deemon-mcp.py"
   ],
   "enabled": true
 }
@@ -42,12 +44,12 @@ The `.mcp.json` in this folder provides the config — point your Claude Code pr
 ### Any MCP client
 
 ```
-command: /Users/rd/Scripts/Riley/audio/download/deemon/.venv/bin/python
-args: [-u, /Users/rd/Scripts/Riley/audio/download/deemon/deemon_mcp.py]
+command: <DEEMON_ROOT>/.venv/bin/python
+args: [-u, <DEEMON_ROOT>/scripts/deemon-mcp.py]
 ```
 
 ## Requirements
 
 - Python 3.10+
-- The deemon package installed in the `.venv` (run `./install.sh` or `pip install -e .` in the project root)
+- The deemon package installed in the `.venv` (run `./install.sh` from the project root)
 - Deezer ARL token in `~/.config/deemon/config.json`
