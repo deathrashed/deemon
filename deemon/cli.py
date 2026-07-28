@@ -49,7 +49,7 @@ def quick_get_menu():
     if not value:
         return
     result = InputResolver().resolve(value)
-    _emit_resolution(result, False)
+    _show_quick_get_resolution(result)
     if result.status is not ResolutionStatus.RESOLVED:
         input("Press Enter to continue...")
         return
@@ -111,7 +111,7 @@ def interactive_menu():
         elif choice.lower() in {'g', 'get', 'quick get'}:
             quick_get_menu()
         elif choice.lower() == 'h':
-            cheatsheet_command()
+            render_cheatsheet()
             input(f"\n{COLOR_DIM}Press Enter to continue...{COLOR_RESET}")
         elif choice.lower() == 'e':
             print(f"\n{COLOR_GREEN}Goodbye!{COLOR_RESET}\n")
@@ -963,7 +963,7 @@ def download_artist(artist_name, artist_id):
     print()
 
     dl = dl_mod.Download()
-    dl.artist_ids([artist_id])
+    dl.download(None, [artist_id], None, None, None, None, None, None)
 
     print(f"\n{COLOR_GREEN}Download complete!{COLOR_RESET}")
     input(f"{COLOR_DIM}Press Enter to continue...{COLOR_RESET}")
@@ -1095,7 +1095,8 @@ def download_monitored():
 
         if choice.lower() == 'a' or choice.lower() == 'download all':
             dl = dl_mod.Download()
-            dl.artist_ids([item.get('artist_id') for item in items])
+            artist_ids = [item.get('artist_id') for item in items if item.get('artist_id')]
+            dl.download(None, artist_ids, None, None, None, None, None, None)
             return
         elif choice.lower() == 'b':
             return
@@ -1619,6 +1620,33 @@ def global_command(url, bitrate, download_path):
 
     dl = download.Download()
     dl.download(None, None, None, url, None, None, None, None)
+
+
+def _show_quick_get_resolution(result):
+    COLOR_RESET = "\033[0m"
+    COLOR_BOLD = "\033[1m"
+    COLOR_CYAN = "\033[36m"
+    COLOR_GREEN = "\033[32m"
+    COLOR_YELLOW = "\033[33m"
+    COLOR_DIM = "\033[2m"
+
+    for item in result.items:
+        label = item.kind.title()
+        if item.kind == 'artist':
+            summary = item.title
+        elif item.artist:
+            summary = f"{item.artist} - {item.title}"
+        else:
+            summary = item.title
+        print(f"\n{COLOR_GREEN}Found {label}:{COLOR_RESET} {COLOR_BOLD}{summary}{COLOR_RESET}")
+        print(f"{COLOR_CYAN}Deezer URL:{COLOR_RESET} {COLOR_DIM}{item.deezer_url}{COLOR_RESET}")
+    for candidate in result.candidates:
+        summary = f"{candidate.artist} - {candidate.title}" if candidate.artist else candidate.title
+        print(f"{COLOR_YELLOW}Candidate:{COLOR_RESET} {summary} {COLOR_DIM}({candidate.deezer_url}){COLOR_RESET}")
+    for warning in result.warnings:
+        print(f"{COLOR_YELLOW}Warning:{COLOR_RESET} {warning}")
+    for error in result.errors:
+        print(f"{COLOR_YELLOW}Error:{COLOR_RESET} {error}")
 
 
 def _emit_resolution(result, as_json):
@@ -2170,9 +2198,7 @@ def search(query):
     client.search_menu(query)
 
 
-@run.command(name="cheatsheet")
-def cheatsheet_command():
-    """Show a quick reference guide for deemon commands"""
+def render_cheatsheet():
     COLOR_RESET = "\033[0m"
     COLOR_BOLD = "\033[1m"
     COLOR_CYAN = "\033[36m"
@@ -2234,6 +2260,12 @@ def cheatsheet_command():
     print(f"  {COLOR_CYAN}q{COLOR_RESET} or {COLOR_CYAN}e{COLOR_RESET}                   Exit")
 
     print(f"\n{COLOR_DIM}For more help:{COLOR_RESET} {COLOR_CYAN}deemon --help{COLOR_RESET} {COLOR_DIM}or{COLOR_RESET} {COLOR_CYAN}deemon COMMAND --help{COLOR_RESET}\n")
+
+
+@run.command(name="cheatsheet")
+def cheatsheet_command():
+    """Show a quick reference guide for deemon commands"""
+    render_cheatsheet()
 
 
 @run.command(name="config")

@@ -52,6 +52,8 @@ def load_plugins():
                             logger.info(f"Loaded plugin: {attr_name}")
                         except Exception as e:
                             logger.error(f"Failed to initialize plugin {attr_name}: {e}")
+        except ModuleNotFoundError as e:
+            logger.debug(f"Skipping optional plugin {plugin_file.stem}: {e}")
         except Exception as e:
             logger.error(f"Failed to load plugin from {plugin_file.name}: {e}")
 
