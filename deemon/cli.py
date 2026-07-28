@@ -3,6 +3,7 @@ import logging
 import platform
 import sys
 import time
+import csv
 from pathlib import Path
 
 import click
@@ -40,6 +41,25 @@ def clear_screen():
         _ = system('clear')
 
 
+def quick_get_menu():
+    from deemon.core.resolver import InputResolver, ResolutionStatus
+
+    value = input("Paste a URL, artist - album, artist, or file path: ").strip()
+    if not value:
+        return
+    result = InputResolver().resolve(value)
+    _emit_resolution(result, False)
+    if result.status is not ResolutionStatus.RESOLVED:
+        input("Press Enter to continue...")
+        return
+    if input(f"Queue {len(result.items)} item(s)? [y/N]: ").strip().lower() != 'y':
+        return
+    downloader = download.Download()
+    downloader.queue_resolved_urls([item.deezer_url for item in result.items])
+    downloader.download_queue()
+    input("Press Enter to continue...")
+
+
 def interactive_menu():
     """Interactive menu for deemon"""
     COLOR_RESET = "\033[0m"
@@ -63,6 +83,7 @@ def interactive_menu():
         print(f"{COLOR_BRIGHT_BLUE}3.{COLOR_RESET} {COLOR_BOLD}Monitor{COLOR_RESET}                 {COLOR_DIM}Monitor artists{COLOR_RESET}")
         print(f"{COLOR_BRIGHT_BLUE}4.{COLOR_RESET} {COLOR_BOLD}New Releases{COLOR_RESET}            {COLOR_DIM}View releases{COLOR_RESET}")
         print(f"{COLOR_BRIGHT_BLUE}5.{COLOR_RESET} {COLOR_BOLD}Configuration{COLOR_RESET}           {COLOR_DIM}Settings & backup{COLOR_RESET}")
+        print(f"{COLOR_DIM}  {COLOR_CYAN}g.{COLOR_RESET} {COLOR_BOLD}Quick Get{COLOR_RESET}              {COLOR_DIM}Paste a URL or search query{COLOR_RESET}")
         print(f"{COLOR_DIM}  {COLOR_CYAN}h.{COLOR_RESET} {COLOR_BOLD}Help{COLOR_RESET}                   {COLOR_DIM}Show cheatsheet{COLOR_RESET}")
         print(f"{COLOR_DIM}  {COLOR_CYAN}e.{COLOR_RESET} {COLOR_BOLD}Exit{COLOR_RESET}")
         print()
@@ -80,6 +101,8 @@ def interactive_menu():
             show_releases_menu()
         elif choice == '5' or choice.lower() == 'configuration':
             config_sub_menu()
+        elif choice.lower() in {'g', 'get', 'quick get'}:
+            quick_get_menu()
         elif choice.lower() == 'h':
             cheatsheet_command()
             input(f"\n{COLOR_DIM}Press Enter to continue...{COLOR_RESET}")
@@ -1636,6 +1659,75 @@ def get_command(input_value, dry_run, as_json, yes):
     downloader = download.Download()
     downloader.queue_resolved_urls([item.deezer_url for item in result.items])
     downloader.download_queue()
+
+
+def _read_queue_file(name):
+    path = startup.get_appdata_dir() / name
+    if not path.exists():
+        return path, []
+    with open(path, newline='', encoding='utf-8') as handle:
+        return path, list(csv.DictReader(handle))
+
+
+@click.group(name='queue')
+def queue_command():
+    pass
+
+
+@queue_command.command(name='list')
+@click.option('--failed', is_flag=True, help='List failed rather than queued downloads')
+@click.option('--json', 'as_json', is_flag=True, help='Output queue rows as JSON')
+def queue_list_command(failed, as_json):
+    path, rows = _read_queue_file('failed.csv' if failed else 'queue.csv')
+    if as_json:
+        click.echo(json.dumps({'path': str(path), 'items': rows}, ensure_ascii=False))
+        return
+    if not rows:
+        click.echo(f'No items in {path.name}.')
+        return
+    for row in rows:
+        click.echo(row.get('url') or row.get('album_title') or row.get('track_title') or 'Unknown item')
+
+
+@queue_command.command(name='retry')
+@click.option('--failed', is_flag=True, help='Retry failed.csv instead of queue.csv')
+@click.option('--dry-run', is_flag=True, help='Show items without queueing them')
+@click.option('--yes', is_flag=True, help='Retry without prompting')
+def queue_retry_command(failed, dry_run, yes):
+    path, rows = _read_queue_file('failed.csv' if failed else 'queue.csv')
+    urls = [row['url'] for row in rows if row.get('url')]
+    if not urls:
+        raise click.ClickException(f'No retryable URLs in {path.name}.')
+    if dry_run:
+        click.echo('\n'.join(urls))
+        return
+    if not yes:
+        click.confirm(f'Retry {len(urls)} item(s)?', abort=True)
+    downloader = download.Download()
+    downloader.queue_resolved_urls(urls)
+    downloader.download_queue()
+
+
+@run.command(name='doctor')
+@click.option('--json', 'as_json', is_flag=True, help='Output readiness checks as JSON')
+def doctor_command(as_json):
+    config_path = startup.get_config()
+    appdata = startup.get_appdata_dir()
+    checks = {
+        'config_file': config_path.exists(),
+        'appdata_dir': appdata.exists(),
+        'arl_configured': bool(config.arl()),
+        'download_path_configured': bool(config.download_path()),
+        'deemix_path_configured': bool(config.deemix_path()),
+    }
+    if as_json:
+        click.echo(json.dumps(checks, ensure_ascii=False))
+        return
+    for name, passed in checks.items():
+        click.echo(f"{'OK' if passed else 'MISSING'}  {name}")
+
+
+run.add_command(queue_command)
 
 
 @run.command(name='download', no_args_is_help=True)
