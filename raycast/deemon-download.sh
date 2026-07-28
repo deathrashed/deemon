@@ -27,7 +27,7 @@ export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 cd "$HOME/Scripts/Riley/audio/download/deemon" 2>/dev/null || true
 
 # Call deemon directly
-python3 -m deemon download --band "$1" --album "$2"
+python3 -m deemon get --yes "$1 - $2"
 
 # Exit with deemon's exit code
 exit $?

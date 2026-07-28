@@ -39,7 +39,7 @@ if [ -z "$1" ]; then
 fi
 
 # Call deemon with global command
-python3 -m deemon global "$1"
+python3 -m deemon get --yes "$1"
 
 # Exit with deemon's exit code
 exit $?
