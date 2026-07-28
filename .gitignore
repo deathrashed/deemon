@@ -6,6 +6,7 @@ dist
 test.txt
 venv
 .cache
+.worktrees/
 tests.py
 **/.DS_Store
 artists.txt
