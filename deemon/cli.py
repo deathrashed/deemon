@@ -1,3 +1,4 @@
+import json
 import logging
 import platform
 import sys
@@ -1588,6 +1589,53 @@ def global_command(url, bitrate, download_path):
 
     dl = download.Download()
     dl.download(None, None, None, url, None, None, None, None)
+
+
+def _emit_resolution(result, as_json):
+    if as_json:
+        click.echo(json.dumps(result.to_dict(), ensure_ascii=False))
+        return
+    for item in result.items:
+        click.echo(item.deezer_url)
+    for candidate in result.candidates:
+        click.echo(f"Candidate: {candidate.artist or ''} - {candidate.title} ({candidate.deezer_url})")
+    for warning in result.warnings:
+        click.echo(f"Warning: {warning}", err=True)
+    for error in result.errors:
+        click.echo(f"Error: {error}", err=True)
+
+
+@run.command(name='resolve')
+@click.argument('input_value', nargs=-1, required=True)
+@click.option('--json', 'as_json', is_flag=True, help='Output a stable JSON resolution envelope')
+def resolve_command(input_value, as_json):
+    from deemon.core.resolver import InputResolver, ResolutionStatus
+
+    result = InputResolver().resolve(' '.join(input_value))
+    _emit_resolution(result, as_json)
+    if result.status is not ResolutionStatus.RESOLVED:
+        raise click.ClickException('Resolution did not produce one safe Deezer result.')
+
+
+@run.command(name='get')
+@click.argument('input_value', nargs=-1, required=True)
+@click.option('--dry-run', is_flag=True, help='Resolve and show the download plan without queueing')
+@click.option('--json', 'as_json', is_flag=True, help='Output a stable JSON download plan')
+@click.option('--yes', is_flag=True, help='Queue a non-empty resolved plan without prompting')
+def get_command(input_value, dry_run, as_json, yes):
+    from deemon.core.resolver import InputResolver, ResolutionStatus
+
+    result = InputResolver().resolve(' '.join(input_value))
+    _emit_resolution(result, as_json)
+    if result.status is not ResolutionStatus.RESOLVED:
+        raise click.ClickException('Nothing was queued because resolution was not unique.')
+    if dry_run:
+        return
+    if not yes:
+        click.confirm(f'Queue {len(result.items)} item(s)?', abort=True)
+    downloader = download.Download()
+    downloader.queue_resolved_urls([item.deezer_url for item in result.items])
+    downloader.download_queue()
 
 
 @run.command(name='download', no_args_is_help=True)

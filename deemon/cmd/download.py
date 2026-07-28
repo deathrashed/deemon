@@ -514,6 +514,11 @@ class Download:
                 refresh_plex(plex)
         return True
 
+    def queue_resolved_urls(self, urls: list[str]) -> list[QueueItem]:
+        self.queue_list = []
+        self.download(None, None, None, urls, None, None, None, None, auto=False)
+        return list(self.queue_list)
+
     def download(self, artist, artist_id, album_id, url,
                  artist_file, track_file, album_file, track_id, auto=True, monitored=False):
 
