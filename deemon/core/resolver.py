@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -128,12 +130,34 @@ class InputResolver:
             return Resolution(ResolutionStatus.ERROR, value, errors=[f"Spotify metadata lookup failed: {exc}"])
         if not title:
             return Resolution(ResolutionStatus.ERROR, value, errors=["Spotify metadata lookup did not return a title."])
+        artist_name = None
+        if kind in {"artist", "album"}:
+            try:
+                embed_url = value.replace("open.spotify.com/", "open.spotify.com/embed/", 1)
+                embed_response = self.http_get(embed_url, timeout=10)
+                embed_response.raise_for_status()
+                match = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', embed_response.text)
+                entity = json.loads(match.group(1))["props"]["pageProps"]["state"]["data"]["entity"] if match else {}
+                title = entity.get("title") or entity.get("name") or title
+                artist_name = entity.get("subtitle")
+            except (KeyError, TypeError, ValueError, requests.RequestException):
+                pass
+        if kind == "artist":
+            search_result = self.api.search_artist(title, limit=5)
+            artists = search_result.get("results", []) if isinstance(search_result, dict) else []
+            exact = [artist for artist in artists if _normalise(artist.get("name", "")) == _normalise(title)]
+            candidates = [ResolvedItem("artist", f"https://www.deezer.com/artist/{artist['id']}", artist["name"], artist["name"], 1.0 if artist in exact else 0.6, "spotify-public-embed") for artist in exact or artists]
+            if len(exact) == 1:
+                return Resolution(ResolutionStatus.RESOLVED, value, items=candidates)
+            if candidates:
+                return Resolution(ResolutionStatus.AMBIGUOUS, value, candidates=candidates, errors=["Deezer artist match was not unique enough to download automatically."])
+            return Resolution(ResolutionStatus.ERROR, value, errors=["No Deezer artist was found for Spotify metadata."])
         search_result = self.api.search_album(title, limit=5)
         albums = search_result.get("results", []) if isinstance(search_result, dict) else []
-        exact = [album for album in albums if _normalise(album.get("title", "")) == _normalise(title)]
-        candidates = [ResolvedItem("album", f"https://www.deezer.com/album/{album['id']}", album["title"], album.get("artist", {}).get("name"), 0.9 if album in exact else 0.5, "spotify-oembed") for album in exact or albums]
+        exact = [album for album in albums if _normalise(album.get("title", "")) == _normalise(title) and (not artist_name or _normalise(album.get("artist", {}).get("name", "")) == _normalise(artist_name))]
+        candidates = [ResolvedItem("album", f"https://www.deezer.com/album/{album['id']}", album["title"], album.get("artist", {}).get("name"), 0.95 if album in exact else 0.5, "spotify-public-embed" if artist_name else "spotify-oembed") for album in exact or albums]
         if len(exact) == 1:
             return Resolution(ResolutionStatus.RESOLVED, value, items=candidates)
         if candidates:
-            return Resolution(ResolutionStatus.AMBIGUOUS, value, candidates=candidates, warnings=["Spotify fallback matched by public title only."], errors=["Deezer match was not unique enough to download automatically."])
+            return Resolution(ResolutionStatus.AMBIGUOUS, value, candidates=candidates, warnings=["Spotify fallback could not identify a unique Deezer match."], errors=["Deezer match was not unique enough to download automatically."])
         return Resolution(ResolutionStatus.ERROR, value, errors=["No Deezer match was found for Spotify metadata."])

@@ -12,6 +12,7 @@ sys.path.append(str(Path(__file__).parent))
 from mcp.server.fastmcp import FastMCP
 
 from deemon.core.config import Config as DeemonConfig
+from deemon.core.resolver import InputResolver, ResolutionStatus
 from deemon.core import api
 from deemon.cmd.download import Download
 from deemon.cmd.monitor import Monitor
@@ -128,9 +129,18 @@ def get_album_info(album_id: int) -> str:
 def download_url(url: str) -> str:
     """Download an album/track/playlist from a Deezer or Spotify URL."""
     try:
+        resolution = InputResolver().resolve(url)
+        if resolution.status is not ResolutionStatus.RESOLVED:
+            return json.dumps(resolution.to_dict())
         dl = Download()
-        dl.download(None, None, None, [url], None, None, None, None)
-        return json.dumps({"status": "success", "message": f"Download started for {url}"})
+        resolved_urls = [item.deezer_url for item in resolution.items]
+        dl.download(None, None, None, resolved_urls, None, None, None, None)
+        return json.dumps({
+            "status": "success",
+            "input": url,
+            "resolved": resolved_urls,
+            "message": f"Download started for {len(resolved_urls)} resolved item(s)",
+        })
     except Exception as e:
         return json.dumps({"error": str(e)})
 

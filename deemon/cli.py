@@ -5,6 +5,7 @@ import sys
 import time
 import csv
 from pathlib import Path
+from typing import Any
 
 import click
 import inquirer
@@ -72,11 +73,17 @@ def interactive_menu():
     COLOR_DIM = "\033[2m"
 
     clear_screen()
+    assert config is not None
+    assert db is not None
     while True:
         clear_screen()
         print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}")
         print(f"{COLOR_BRIGHT_CYAN}{' ' * 22}DEEMON{COLOR_RESET}")
         print(f"{COLOR_BRIGHT_CYAN}{'=' * 60}{COLOR_RESET}\n")
+        active_profile = db.get_profile_by_id(config.profile_id()) or {}
+        profile_name = active_profile.get('name', 'default')
+        arl_status = 'ready' if config.arl() else 'missing ARL'
+        print(f"{COLOR_DIM}Profile: {profile_name} | Deezer: {arl_status}{COLOR_RESET}\n")
 
         print(f"{COLOR_BRIGHT_BLUE}1.{COLOR_RESET} {COLOR_BOLD}Download{COLOR_RESET}                {COLOR_DIM}Download music{COLOR_RESET}")
         print(f"{COLOR_BRIGHT_BLUE}2.{COLOR_RESET} {COLOR_BOLD}Search{COLOR_RESET}                  {COLOR_DIM}Search & download{COLOR_RESET}")
@@ -1711,6 +1718,7 @@ def queue_retry_command(failed, dry_run, yes):
 @run.command(name='doctor')
 @click.option('--json', 'as_json', is_flag=True, help='Output readiness checks as JSON')
 def doctor_command(as_json):
+    assert config is not None
     config_path = startup.get_config()
     appdata = startup.get_appdata_dir()
     checks = {
@@ -1727,7 +1735,72 @@ def doctor_command(as_json):
         click.echo(f"{'OK' if passed else 'MISSING'}  {name}")
 
 
+def _config_path_value(path, raw_value):
+    target = config.get_config()
+    keys = path.split('.')
+    for key in keys[:-1]:
+        if not isinstance(target, dict) or key not in target:
+            raise click.BadParameter(f'Unknown setting: {path}', param_hint='path')
+        target = target[key]
+    key = keys[-1]
+    if not isinstance(target, dict) or key not in target:
+        raise click.BadParameter(f'Unknown setting: {path}', param_hint='path')
+    current = target[key]
+    if isinstance(current, bool):
+        normalized = raw_value.lower()
+        if normalized not in {'true', 'false', '1', '0'}:
+            raise click.BadParameter('Boolean values must be true, false, 1, or 0.', param_hint='value')
+        target[key] = normalized in {'true', '1'}
+    elif isinstance(current, int) and not isinstance(current, bool):
+        try:
+            target[key] = int(raw_value)
+        except ValueError as exc:
+            raise click.BadParameter('Expected an integer value.', param_hint='value') from exc
+    elif isinstance(current, str):
+        target[key] = raw_value
+    else:
+        raise click.BadParameter(f'Setting {path} cannot be changed from the command line.', param_hint='path')
+    with open(config.get_config_file(), 'w', encoding='utf-8') as handle:
+        json.dump(config.get_config(), handle, indent=4)
+    return target[key]
+
+
+def _redact_settings(value: Any, key: str = '') -> Any:
+    if isinstance(value, dict):
+        return {item_key: _redact_settings(item_value, item_key) for item_key, item_value in value.items()}
+    if any(secret in key.lower() for secret in ('arl', 'password', 'token')):
+        return '***' if value else ''
+    return value
+
+
+@click.group(name='settings')
+def settings_command():
+    pass
+
+
+@settings_command.command(name='show')
+@click.option('--json', 'as_json', is_flag=True, help='Output configuration as JSON with secrets redacted')
+def settings_show_command(as_json):
+    assert config is not None
+    settings = _redact_settings(config.get_config())
+    if as_json:
+        click.echo(json.dumps(settings, ensure_ascii=False, indent=2))
+        return
+    for section, value in settings.items():
+        click.echo(f'{section}: {value}')
+
+
+@settings_command.command(name='set')
+@click.argument('path')
+@click.argument('value')
+def settings_set_command(path, value):
+    assert config is not None
+    _config_path_value(path, value)
+    click.echo(f'Updated {path}.')
+
+
 run.add_command(queue_command)
+run.add_command(settings_command)
 
 
 @run.command(name='download', no_args_is_help=True)
@@ -2185,9 +2258,35 @@ def rollback_command(num, view):
 @run.command(name="discography", no_args_is_help=True)
 @click.option('-b', '--band', type=str, help='Band or artist name')
 @click.option('-a', '--album', type=str, help='Album name to identify artist')
+@click.option('--url', type=str, help='Deezer or Spotify album URL used to identify the artist')
 @click.option('--include-singles', is_flag=True, help='Include singles in discography')
 @click.option('--print-only', is_flag=True, help='Print album URLs instead of queueing downloads')
-def discography_command(band, album, include_singles, print_only):
+def discography_command(band, album, url, include_singles, print_only):
+    if url:
+        from deemon.core.resolver import InputResolver, ResolutionStatus
+
+        resolution = InputResolver().resolve(url)
+        if resolution.status is not ResolutionStatus.RESOLVED or len(resolution.items) != 1:
+            _emit_resolution(resolution, False)
+            return
+        item = resolution.items[0]
+        if item.kind != 'album':
+            logger.error("Discography URLs must resolve to one album.")
+            return
+        album_id = item.deezer_url.rsplit('/', 1)[-1]
+        try:
+            response = requests.get(f"https://api.deezer.com/album/{album_id}", timeout=10)
+            response.raise_for_status()
+            resolved_album = response.json()
+            band = (resolved_album.get('artist') or {}).get('name')
+            album = resolved_album.get('title')
+        except Exception as exc:
+            logger.error(f"Could not load resolved Deezer album: {exc}")
+            return
+        if not band or not album:
+            logger.error("Resolved Deezer album did not include an artist and title.")
+            return
+        logger.info(f"Resolved {url} to {band} - {album}")
     if not band or not album:
         if sys.stdin.isatty():
             user_input = input("Enter band and album (Band Name - Album Name): ").strip()
